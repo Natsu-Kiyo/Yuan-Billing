@@ -79,7 +79,7 @@ export async function deleteBill(id) {
 export async function getStats({ userId, startDate, endDate }) {
   const { data, error } = await supabase
     .from('bills')
-    .select('type, amount, category_id, categories(name, icon, color)')
+    .select('type, amount, category_id, bill_date, categories(name, icon, color)')
     .eq('user_id', userId)
     .gte('bill_date', startDate)
     .lte('bill_date', endDate)

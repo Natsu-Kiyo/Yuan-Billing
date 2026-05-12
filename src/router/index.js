@@ -21,28 +21,31 @@ const router = createRouter({
       meta: { guest: true },
     },
     {
-      path: '/dashboard',
-      name: 'Dashboard',
-      component: () => import('@/views/dashboard/DashboardView.vue'),
+      path: '/',
+      component: () => import('@/components/layout/AppLayout.vue'),
       meta: { requiresAuth: true },
-    },
-    {
-      path: '/bills',
-      name: 'Bills',
-      component: () => import('@/views/bills/BillsView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/statistics',
-      name: 'Statistics',
-      component: () => import('@/views/statistics/StatisticsView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/profile',
-      name: 'Profile',
-      component: () => import('@/views/profile/ProfileView.vue'),
-      meta: { requiresAuth: true },
+      children: [
+        {
+          path: 'dashboard',
+          name: 'Dashboard',
+          component: () => import('@/views/dashboard/DashboardView.vue'),
+        },
+        {
+          path: 'bills',
+          name: 'Bills',
+          component: () => import('@/views/bills/BillsView.vue'),
+        },
+        {
+          path: 'statistics',
+          name: 'Statistics',
+          component: () => import('@/views/statistics/StatisticsView.vue'),
+        },
+        {
+          path: 'profile',
+          name: 'Profile',
+          component: () => import('@/views/profile/ProfileView.vue'),
+        },
+      ],
     },
   ],
 })
@@ -54,7 +57,7 @@ router.beforeEach(async (to) => {
     await authStore.initAuth()
   }
 
-  if (to.meta.requiresAuth && !authStore.isLoggedIn) {
+  if (to.matched.some((record) => record.meta.requiresAuth) && !authStore.isLoggedIn) {
     return { name: 'Login', query: { redirect: to.fullPath } }
   }
 

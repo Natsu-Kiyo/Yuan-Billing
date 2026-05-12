@@ -8,7 +8,12 @@ import '@/assets/styles/global.less'
 
 const app = createApp(App)
 
-app.use(createPinia())
+const pinia = createPinia()
+app.use(pinia)
 app.use(router)
+
+import { useThemeStore } from '@/stores/theme'
+const themeStore = useThemeStore()
+themeStore.initTheme()
 
 app.mount('#app')

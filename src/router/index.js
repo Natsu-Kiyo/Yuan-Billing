@@ -41,6 +41,11 @@ const router = createRouter({
           component: () => import('@/views/statistics/StatisticsView.vue'),
         },
         {
+          path: 'ai-analysis',
+          name: 'AIAnalysis',
+          component: () => import('@/views/ai/AIAnalysisView.vue'),
+        },
+        {
           path: 'profile',
           name: 'Profile',
           component: () => import('@/views/profile/ProfileView.vue'),

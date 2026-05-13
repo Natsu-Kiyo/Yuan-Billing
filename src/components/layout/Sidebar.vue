@@ -31,6 +31,11 @@ const menuItems = [
     icon: 'el-icon-pie-chart',
   },
   {
+    path: '/ai-analysis',
+    title: 'AI 分析',
+    icon: 'el-icon-cpu',
+  },
+  {
     path: '/profile',
     title: '用户中心',
     icon: 'el-icon-user',

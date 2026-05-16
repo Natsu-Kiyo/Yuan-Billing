@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 
-export async function fetchBills({ userId, type, categoryId, startDate, endDate, page = 1, pageSize = 10 }) {
+export async function fetchBills({ userId, type, categoryId, startDate, endDate, minAmount, maxAmount, page = 1, pageSize = 10 }) {
   let query = supabase
     .from('bills')
     .select('*, categories(name, icon, color)', { count: 'exact' })
@@ -22,6 +22,14 @@ export async function fetchBills({ userId, type, categoryId, startDate, endDate,
 
   if (endDate) {
     query = query.lte('bill_date', endDate)
+  }
+
+  if (minAmount != null) {
+    query = query.gte('amount', minAmount)
+  }
+
+  if (maxAmount != null) {
+    query = query.lte('amount', maxAmount)
   }
 
   const from = (page - 1) * pageSize
@@ -96,6 +104,17 @@ export async function getRecentBills({ userId, limit = 5 }) {
     .order('bill_date', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(limit)
+
+  if (error) throw error
+  return data
+}
+
+export async function fetchAllBills(userId) {
+  const { data, error } = await supabase
+    .from('bills')
+    .select('*, categories(name, icon, color)')
+    .eq('user_id', userId)
+    .order('bill_date', { ascending: false })
 
   if (error) throw error
   return data

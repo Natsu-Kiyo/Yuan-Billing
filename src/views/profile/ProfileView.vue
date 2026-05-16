@@ -322,9 +322,6 @@ function formatJoinDate(dateStr) {
   }
 }
 
-.danger-card {
-}
-
 .danger-title {
   color: var(--color-danger);
 }

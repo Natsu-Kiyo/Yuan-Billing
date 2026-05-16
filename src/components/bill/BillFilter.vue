@@ -5,6 +5,10 @@ import { useBills } from '@/composables/useBills'
 const { filters, setFilters, expenseCategories, incomeCategories } = useBills()
 
 const dateRange = ref(null)
+const minAmount = ref(null)
+const maxAmount = ref(null)
+
+let amountTimer = null
 
 watch(
   () => [filters.value.startDate, filters.value.endDate],
@@ -17,6 +21,26 @@ watch(
   },
   { immediate: true }
 )
+
+watch(
+  () => [filters.value.minAmount, filters.value.maxAmount],
+  ([min, max]) => {
+    if (minAmount.value !== min) minAmount.value = min
+    if (maxAmount.value !== max) maxAmount.value = max
+  },
+  { immediate: true }
+)
+
+watch([minAmount, maxAmount], () => {
+  if (amountTimer) clearTimeout(amountTimer)
+  amountTimer = setTimeout(() => {
+    const min = minAmount.value !== '' && minAmount.value != null ? Number(minAmount.value) : null
+    const max = maxAmount.value !== '' && maxAmount.value != null ? Number(maxAmount.value) : null
+    if (filters.value.minAmount !== min || filters.value.maxAmount !== max) {
+      setFilters({ minAmount: min, maxAmount: max })
+    }
+  }, 400)
+})
 
 const currentCategories = computed(() => {
   if (filters.value.type === 'expense') return expenseCategories.value
@@ -86,6 +110,30 @@ function handleDateChange(dates) {
         @change="handleDateChange"
       />
     </div>
+
+    <div class="filter-group amount-group">
+      <el-input
+        v-model="minAmount"
+        placeholder="最低金额"
+        type="number"
+        size="default"
+        style="width: 110px"
+        clearable
+      >
+        <template #prefix>¥</template>
+      </el-input>
+      <span class="amount-separator">—</span>
+      <el-input
+        v-model="maxAmount"
+        placeholder="最高金额"
+        type="number"
+        size="default"
+        style="width: 110px"
+        clearable
+      >
+        <template #prefix>¥</template>
+      </el-input>
+    </div>
   </div>
 </template>
 
@@ -99,6 +147,17 @@ function handleDateChange(dates) {
 
 .filter-group {
   flex-shrink: 0;
+}
+
+.amount-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.amount-separator {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
 }
 
 @media (max-width: 640px) {

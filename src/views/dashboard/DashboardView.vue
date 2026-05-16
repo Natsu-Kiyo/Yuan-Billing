@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { useBills } from '@/composables/useBills'
@@ -11,10 +11,11 @@ const router = useRouter()
 const { userId, profile } = useAuth()
 const { fetchRecentBills } = useBills()
 
-const todayStats = ref({ expense: 0, income: 0, balance: 0, count: 0 })
+const selectedDate = ref(getToday())
+const dayStats = ref({ expense: 0, income: 0, balance: 0, count: 0 })
 const monthBills = ref([])
 const recentBills = ref([])
-const loadingToday = ref(false)
+const loadingDay = ref(false)
 const loadingMonth = ref(false)
 const loadingBills = ref(false)
 
@@ -63,29 +64,36 @@ const calendarData = computed(() => {
 
 onMounted(async () => {
   if (!userId.value) return
-  await Promise.all([fetchTodayStats(), fetchMonthBills(), loadRecentBills()])
+  await Promise.all([fetchDayStats(), fetchMonthBills(), loadRecentBills()])
 })
 
-async function fetchTodayStats() {
-  loadingToday.value = true
+watch(selectedDate, () => {
+  if (userId.value) {
+    fetchDayStats()
+  }
+})
+
+async function fetchDayStats() {
+  loadingDay.value = true
   try {
-    const data = await getStats({ userId: userId.value, startDate: today, endDate: today })
+    const date = selectedDate.value
+    const data = await getStats({ userId: userId.value, startDate: date, endDate: date })
     let expense = 0
     let income = 0
     data.forEach((b) => {
       if (b.type === 'expense') expense += Number(b.amount)
       else income += Number(b.amount)
     })
-    todayStats.value = {
+    dayStats.value = {
       expense,
       income,
       balance: income - expense,
       count: data.length,
     }
   } catch {
-    todayStats.value = { expense: 0, income: 0, balance: 0, count: 0 }
+    dayStats.value = { expense: 0, income: 0, balance: 0, count: 0 }
   } finally {
-    loadingToday.value = false
+    loadingDay.value = false
   }
 }
 
@@ -139,6 +147,15 @@ function formatTooltipAmount(amount) {
   if (amount === 0) return '无支出'
   return `支出 ${formatAmount(amount)}`
 }
+
+function handleCellClick(cell) {
+  if (!cell) return
+  selectedDate.value = cell.date
+}
+
+function isSelectedDate(dateStr) {
+  return dateStr === selectedDate.value
+}
 </script>
 
 <template>
@@ -152,43 +169,48 @@ function formatTooltipAmount(amount) {
 
     <div class="stats-grid">
       <StatCard
-        title="今日支出"
-        :value="todayStats.expense"
+        title="当日支出"
+        :value="dayStats.expense"
         prefix="¥"
         icon="el-icon-top"
         color="#ef4444"
-        :loading="loadingToday"
+        :loading="loadingDay"
       />
       <StatCard
-        title="今日收入"
-        :value="todayStats.income"
+        title="当日收入"
+        :value="dayStats.income"
         prefix="¥"
         icon="el-icon-bottom"
         color="#22c55e"
-        :loading="loadingToday"
+        :loading="loadingDay"
       />
       <StatCard
-        title="今日结余"
-        :value="todayStats.balance"
+        title="当日结余"
+        :value="dayStats.balance"
         prefix="¥"
         icon="el-icon-wallet"
         color="#6366f1"
-        :loading="loadingToday"
+        :loading="loadingDay"
       />
       <StatCard
-        title="今日账单数"
-        :value="todayStats.count"
+        title="当日账单数"
+        :value="dayStats.count"
         suffix=" 笔"
         icon="el-icon-tickets"
         color="#f59e0b"
-        :loading="loadingToday"
+        :loading="loadingDay"
       />
     </div>
 
     <div class="dashboard-grid">
       <div class="section-card calendar-section">
         <div class="section-header">
-          <h3 class="section-title">{{ month + 1 }}月消费热力图</h3>
+          <h3 class="section-title">
+            {{ month + 1 }}月消费热力图
+            <span v-if="selectedDate !== today" class="selected-date-tag">
+              {{ selectedDate }}
+            </span>
+          </h3>
           <div class="calendar-legend">
             <span class="legend-label">少</span>
             <span class="legend-cell" style="background: var(--color-bg-tertiary)"></span>
@@ -224,8 +246,9 @@ function formatTooltipAmount(amount) {
                 <div
                   v-if="cell"
                   class="calendar-cell"
-                  :class="{ 'is-today': cell.date === today }"
+                  :class="{ 'is-today': cell.date === today, 'is-selected': isSelectedDate(cell.date) }"
                   :style="{ background: cellColor(cell.intensity) }"
+                  @click="handleCellClick(cell)"
                 >
                   <span class="cell-day">{{ cell.day }}</span>
                 </div>
@@ -337,6 +360,18 @@ function formatTooltipAmount(amount) {
   margin: 0;
 }
 
+.selected-date-tag {
+  display: inline-block;
+  margin-left: var(--spacing-sm);
+  padding: 2px 8px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-brand);
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: var(--radius-sm);
+  vertical-align: middle;
+}
+
 .calendar-section {
   min-height: 240px;
 }
@@ -408,6 +443,12 @@ function formatTooltipAmount(amount) {
 
   &.is-today {
     box-shadow: 0 0 0 2px var(--color-brand);
+  }
+
+  &.is-selected {
+    z-index: 1;
+    box-shadow: 0 0 0 2px var(--color-brand), 0 0 0 4px rgba(99, 102, 241, 0.3);
+    transform: scale(1.08);
   }
 
   &.empty {

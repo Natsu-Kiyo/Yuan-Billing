@@ -132,6 +132,10 @@ function handleDateChange(val) {
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
 
+  > * {
+    min-width: 0;
+  }
+
   @media (max-width: 1024px) {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -147,9 +151,17 @@ function handleDateChange(val) {
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
 
+  > * {
+    min-width: 0;
+  }
+
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
   }
+}
+
+.section-card {
+  overflow: hidden;
 }
 
 .chart-title {

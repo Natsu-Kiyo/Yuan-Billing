@@ -23,12 +23,12 @@ export const useCategoriesStore = defineStore('categories', () => {
     return map
   })
 
-  async function fetchCategories(userId) {
+  async function fetchCategories() {
     loading.value = true
     error.value = null
 
     try {
-      const data = await apiFetchCategories(userId)
+      const data = await apiFetchCategories()
       categories.value = data
     } catch (err) {
       error.value = err.message

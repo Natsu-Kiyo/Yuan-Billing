@@ -20,6 +20,8 @@ export const useBillsStore = defineStore('bills', () => {
     categoryId: null,
     startDate: null,
     endDate: null,
+    minAmount: null,
+    maxAmount: null,
   })
 
   const pagination = reactive({
@@ -53,6 +55,8 @@ export const useBillsStore = defineStore('bills', () => {
         categoryId: filters.categoryId,
         startDate: filters.startDate,
         endDate: filters.endDate,
+        minAmount: filters.minAmount,
+        maxAmount: filters.maxAmount,
         page: pagination.page,
         pageSize: pagination.pageSize,
       })

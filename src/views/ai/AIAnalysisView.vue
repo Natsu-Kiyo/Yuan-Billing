@@ -49,7 +49,10 @@ watch(
 
 function renderMarkdown(content) {
   const cleaned = (content || '').replace(/\n{2,}/g, '\n')
-  return md.render(cleaned)
+  let html = md.render(cleaned)
+  html = html.replace(/<p>\s*<\/p>/g, '')
+  html = html.replace(/(<br\s*\/?>\s*){2,}/g, '<br>')
+  return html
 }
 
 function buildStats() {
@@ -450,16 +453,16 @@ function formatTime(ts) {
   :deep(h3) { font-size: 14px; }
 
   :deep(p) {
-    margin: 2px 0;
+    margin: 0;
   }
 
   :deep(ul), :deep(ol) {
     padding-left: 18px;
-    margin: 2px 0;
+    margin: 0;
   }
 
   :deep(li) {
-    margin: 1px 0;
+    margin: 0;
   }
 
   :deep(code) {

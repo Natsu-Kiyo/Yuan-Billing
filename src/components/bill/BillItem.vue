@@ -1,4 +1,20 @@
 <script setup>
+import { computed } from 'vue'
+import {
+  Food,
+  Van,
+  ShoppingCart,
+  VideoPlay,
+  Reading,
+  House,
+  FirstAidKit,
+  More,
+  Money,
+  Coin,
+  Wallet,
+  Present,
+  MoreFilled,
+} from '@element-plus/icons-vue'
 import { formatAmount, formatDate } from '@/utils/format'
 
 const props = defineProps({
@@ -10,9 +26,26 @@ const props = defineProps({
 
 const emit = defineEmits(['edit', 'delete'])
 
+const iconMap = {
+  '餐饮': Food,
+  '交通': Van,
+  '购物': ShoppingCart,
+  '娱乐': VideoPlay,
+  '学习': Reading,
+  '住房': House,
+  '医疗': FirstAidKit,
+  '其他支出': More,
+  '工资': Money,
+  '兼职': Coin,
+  '生活费': Wallet,
+  '红包': Present,
+  '其他收入': MoreFilled,
+}
+
 const categoryColor = props.bill?.categories?.color || '#6366f1'
 const categoryName = props.bill?.categories?.name || '未分类'
 const isExpense = props.bill?.type === 'expense'
+const iconComponent = computed(() => iconMap[categoryName] || Wallet)
 </script>
 
 <template>
@@ -20,7 +53,7 @@ const isExpense = props.bill?.type === 'expense'
     <div class="bill-left">
       <div class="bill-icon" :style="{ background: categoryColor + '20', color: categoryColor }">
         <el-icon :size="18">
-          <el-icon-wallet></el-icon-wallet>
+          <component :is="iconComponent" />
         </el-icon>
       </div>
       <div class="bill-info">

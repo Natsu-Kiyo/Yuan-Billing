@@ -37,10 +37,19 @@ const currentCategories = computed(() =>
   form.type === 'expense' ? expenseCategories.value : incomeCategories.value
 )
 
+const validateAmount = (_rule, value, callback) => {
+  const num = parseFloat(value)
+  if (isNaN(num) || num <= 0) {
+    callback(new Error('金额必须大于0'))
+  } else {
+    callback()
+  }
+}
+
 const rules = {
   amount: [
     { required: true, message: '请输入金额', trigger: 'blur' },
-    { type: 'number', min: 0.01, message: '金额必须大于0', trigger: 'blur' },
+    { validator: validateAmount, trigger: 'blur' },
   ],
   categoryId: [
     { required: true, message: '请选择分类', trigger: 'change' },

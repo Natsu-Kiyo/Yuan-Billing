@@ -1,6 +1,13 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import {
+  DataBoard,
+  Tickets,
+  PieChart,
+  Cpu,
+  User,
+} from '@element-plus/icons-vue'
 
 const props = defineProps({
   collapsed: {
@@ -18,27 +25,27 @@ const menuItems = [
   {
     path: '/dashboard',
     title: '首页',
-    icon: 'el-icon-data-board',
+    icon: DataBoard,
   },
   {
     path: '/bills',
     title: '账单管理',
-    icon: 'el-icon-tickets',
+    icon: Tickets,
   },
   {
     path: '/statistics',
     title: '数据统计',
-    icon: 'el-icon-pie-chart',
+    icon: PieChart,
   },
   {
     path: '/ai-analysis',
     title: 'AI 分析',
-    icon: 'el-icon-cpu',
+    icon: Cpu,
   },
   {
     path: '/profile',
     title: '用户中心',
-    icon: 'el-icon-user',
+    icon: User,
   },
 ]
 

@@ -5,8 +5,11 @@ import { useBills } from '@/composables/useBills'
 const { filters, setFilters, expenseCategories, incomeCategories } = useBills()
 
 const dateRange = ref(null)
+const startDate = ref(null)
+const endDate = ref(null)
 const minAmount = ref(null)
 const maxAmount = ref(null)
+const amountError = ref('')
 
 let amountTimer = null
 
@@ -18,6 +21,8 @@ watch(
     } else {
       dateRange.value = null
     }
+    startDate.value = start || null
+    endDate.value = end || null
   },
   { immediate: true }
 )
@@ -36,6 +41,13 @@ watch([minAmount, maxAmount], () => {
   amountTimer = setTimeout(() => {
     const min = minAmount.value !== '' && minAmount.value != null ? Number(minAmount.value) : null
     const max = maxAmount.value !== '' && maxAmount.value != null ? Number(maxAmount.value) : null
+
+    if (min != null && max != null && max <= min) {
+      amountError.value = '最高金额必须大于最低金额'
+      return
+    }
+
+    amountError.value = ''
     if (filters.value.minAmount !== min || filters.value.maxAmount !== max) {
       setFilters({ minAmount: min, maxAmount: max })
     }
@@ -56,12 +68,8 @@ function handleCategoryChange(categoryId) {
   setFilters({ categoryId })
 }
 
-function handleDateChange(dates) {
-  if (dates && dates.length === 2) {
-    setFilters({ startDate: dates[0], endDate: dates[1] })
-  } else {
-    setFilters({ startDate: null, endDate: null })
-  }
+function handleDateChange() {
+  setFilters({ startDate: startDate.value, endDate: endDate.value })
 }
 </script>
 
@@ -97,16 +105,24 @@ function handleDateChange(dates) {
       </el-select>
     </div>
 
-    <div class="filter-group">
+    <div class="filter-group date-group">
       <el-date-picker
-        v-model="dateRange"
-        type="daterange"
-        range-separator="至"
-        start-placeholder="开始日期"
-        end-placeholder="结束日期"
+        v-model="startDate"
+        type="date"
+        placeholder="开始日期"
         value-format="YYYY-MM-DD"
         size="default"
-        style="width: 240px"
+        style="width: 150px"
+        @change="handleDateChange"
+      />
+      <span class="date-separator">至</span>
+      <el-date-picker
+        v-model="endDate"
+        type="date"
+        placeholder="结束日期"
+        value-format="YYYY-MM-DD"
+        size="default"
+        style="width: 150px"
         @change="handleDateChange"
       />
     </div>
@@ -117,7 +133,7 @@ function handleDateChange(dates) {
         placeholder="最低金额"
         type="number"
         size="default"
-        style="width: 110px"
+        style="width: 130px"
         clearable
       >
         <template #prefix>¥</template>
@@ -128,12 +144,14 @@ function handleDateChange(dates) {
         placeholder="最高金额"
         type="number"
         size="default"
-        style="width: 110px"
+        style="width: 130px"
         clearable
       >
         <template #prefix>¥</template>
       </el-input>
     </div>
+
+    <div v-if="amountError" class="amount-error">{{ amountError }}</div>
   </div>
 </template>
 
@@ -155,9 +173,27 @@ function handleDateChange(dates) {
   gap: 6px;
 }
 
+.date-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.date-separator {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
 .amount-separator {
   font-size: var(--font-size-sm);
   color: var(--color-text-tertiary);
+}
+
+.amount-error {
+  font-size: var(--font-size-xs);
+  color: var(--el-color-danger);
+  margin-top: 4px;
 }
 
 @media (max-width: 640px) {
@@ -169,6 +205,15 @@ function handleDateChange(dates) {
   .filter-group :deep(.el-select),
   .filter-group :deep(.el-date-editor) {
     width: 100% !important;
+  }
+
+  .date-group {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .date-separator {
+    display: none;
   }
 }
 </style>

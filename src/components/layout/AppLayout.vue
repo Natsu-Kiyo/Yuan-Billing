@@ -7,7 +7,7 @@ const sidebarCollapsed = ref(false)
 const isMobile = ref(false)
 
 const sidebarWidth = computed(() => {
-  if (isMobile.value) return 0
+  if (isMobile.value) return '0px'
   return sidebarCollapsed.value ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)'
 })
 

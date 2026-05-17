@@ -1,11 +1,12 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, defineAsyncComponent } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useStatistics } from '@/composables/useStatistics'
 import StatCard from '@/components/chart/StatCard.vue'
-import PieChart from '@/components/chart/PieChart.vue'
-import LineChart from '@/components/chart/LineChart.vue'
-import BarChart from '@/components/chart/BarChart.vue'
+
+const PieChart = defineAsyncComponent(() => import('@/components/chart/PieChart.vue'))
+const LineChart = defineAsyncComponent(() => import('@/components/chart/LineChart.vue'))
+const BarChart = defineAsyncComponent(() => import('@/components/chart/BarChart.vue'))
 
 const { userId } = useAuth()
 const {
@@ -24,6 +25,9 @@ const {
 } = useStatistics()
 
 const dateRangeValue = ref(null)
+const startDateValue = ref(null)
+const endDateValue = ref(null)
+let debounceTimer = null
 
 onMounted(async () => {
   if (!userId.value) return
@@ -36,17 +40,21 @@ watch(
     if (dateRange.startDate && dateRange.endDate) {
       dateRangeValue.value = [dateRange.startDate, dateRange.endDate]
     }
+    startDateValue.value = dateRange.startDate || null
+    endDateValue.value = dateRange.endDate || null
   },
   { immediate: true }
 )
 
-function handleDateChange(val) {
-  if (val && val.length === 2) {
-    setDateRange(val[0], val[1])
+function handleDateChange() {
+  setDateRange(startDateValue.value, endDateValue.value)
+  if (!startDateValue.value || !endDateValue.value) return
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
     if (userId.value) {
       fetchStats(userId.value)
     }
-  }
+  }, 300)
 }
 </script>
 
@@ -57,17 +65,27 @@ function handleDateChange(val) {
         <h1 class="page-title">数据统计</h1>
         <p class="page-subtitle">消费数据可视化分析</p>
       </div>
-      <el-date-picker
-        v-model="dateRangeValue"
-        type="daterange"
-        range-separator="至"
-        start-placeholder="开始日期"
-        end-placeholder="结束日期"
-        value-format="YYYY-MM-DD"
-        size="default"
-        style="width: 260px"
-        @change="handleDateChange"
-      />
+      <div class="date-filter">
+        <el-date-picker
+          v-model="startDateValue"
+          type="date"
+          placeholder="开始日期"
+          value-format="YYYY-MM-DD"
+          size="default"
+          style="width: 150px"
+          @change="handleDateChange"
+        />
+        <span class="date-separator">至</span>
+        <el-date-picker
+          v-model="endDateValue"
+          type="date"
+          placeholder="结束日期"
+          value-format="YYYY-MM-DD"
+          size="default"
+          style="width: 150px"
+          @change="handleDateChange"
+        />
+      </div>
     </div>
 
     <div class="stats-grid">
@@ -167,7 +185,35 @@ function handleDateChange(val) {
 .chart-title {
   font-size: 15px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--color-text-primary);
   margin: 0 0 var(--spacing-md) 0;
+}
+
+.date-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.date-separator {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .date-filter {
+    flex-direction: column;
+    width: 100%;
+    gap: var(--spacing-xs);
+  }
+
+  .date-filter :deep(.el-date-editor) {
+    width: 100% !important;
+  }
+
+  .date-separator {
+    display: none;
+  }
 }
 </style>

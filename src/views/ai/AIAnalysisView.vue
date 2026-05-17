@@ -623,12 +623,7 @@ function formatTime(ts) {
   top: 0;
 
   @media (max-width: 900px) {
-    width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md);
-    position: static;
+    display: none;
   }
 }
 

@@ -52,13 +52,18 @@ const router = createRouter({
         },
       ],
     },
+  {
+      path: '/:pathMatch(.*)*',
+      name: 'NotFound',
+      component: () => import('@/views/NotFoundView.vue'),
+    },
   ],
 })
 
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
 
-  if (!authStore.isLoggedIn && !authStore.loading) {
+  if (!authStore.initialized) {
     await authStore.initAuth()
   }
 

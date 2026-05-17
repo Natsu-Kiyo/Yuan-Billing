@@ -1,6 +1,8 @@
 <script setup>
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
+import { getAvatarUrl } from '@/utils/avatar'
 import ThemeToggle from '@/components/common/ThemeToggle.vue'
 
 defineProps({
@@ -18,6 +20,8 @@ const emit = defineEmits(['toggle-sidebar'])
 
 const router = useRouter()
 const { profile, logout } = useAuth()
+
+const avatarUrl = computed(() => getAvatarUrl(profile.value?.nickname, 64, profile.value?.avatar_url))
 
 async function handleLogout() {
   try {
@@ -54,7 +58,7 @@ function handleCommand(command) {
 
       <el-dropdown trigger="click" @command="handleCommand">
         <button class="user-avatar-btn">
-          <el-avatar :size="32" icon="UserFilled" />
+          <el-avatar :size="32" :src="avatarUrl" />
           <span class="user-name">{{ profile?.nickname || '用户' }}</span>
           <el-icon :size="14" class="dropdown-arrow">
             <el-icon-arrow-down></el-icon-arrow-down>

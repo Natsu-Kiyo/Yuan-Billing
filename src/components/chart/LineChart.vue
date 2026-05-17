@@ -6,6 +6,7 @@ import { TitleComponent, TooltipComponent, LegendComponent, GridComponent } from
 import { CanvasRenderer } from 'echarts/renderers'
 import { getInstanceByDom } from 'echarts'
 import VChart from 'vue-echarts'
+import { useChartTheme } from '@/composables/useChartTheme'
 
 use([LineChart, TitleComponent, TooltipComponent, LegendComponent, GridComponent, CanvasRenderer])
 
@@ -14,6 +15,8 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   height: { type: String, default: '320px' },
 })
+
+const { bgCard, borderColor, textPrimary, textSecondary } = useChartTheme()
 
 const wrapperRef = ref(null)
 let resizeObserver = null
@@ -48,9 +51,9 @@ const option = computed(() => {
   return {
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'var(--bg-card)',
-      borderColor: 'var(--border-color)',
-      textStyle: { color: 'var(--text-primary)', fontSize: 13 },
+      backgroundColor: bgCard.value,
+      borderColor: borderColor.value,
+      textStyle: { color: textPrimary.value, fontSize: 13 },
       formatter: (params) => {
         let html = `${params[0].axisValue}<br/>`
         params.forEach((p) => {
@@ -62,7 +65,7 @@ const option = computed(() => {
     legend: {
       data: ['支出', '收入'],
       bottom: 0,
-      textStyle: { color: 'var(--text-secondary)', fontSize: 12 },
+      textStyle: { color: textSecondary.value, fontSize: 12 },
     },
     grid: {
       left: '3%',
@@ -74,15 +77,15 @@ const option = computed(() => {
     xAxis: {
       type: 'category',
       data: months,
-      axisLine: { lineStyle: { color: 'var(--border-color)' } },
-      axisLabel: { color: 'var(--text-secondary)', fontSize: 11 },
+      axisLine: { lineStyle: { color: borderColor.value } },
+      axisLabel: { color: textSecondary.value, fontSize: 11 },
       axisTick: { show: false },
     },
     yAxis: {
       type: 'value',
-      splitLine: { lineStyle: { color: 'var(--border-color)', type: 'dashed' } },
+      splitLine: { lineStyle: { color: borderColor.value, type: 'dashed' } },
       axisLabel: {
-        color: 'var(--text-secondary)',
+        color: textSecondary.value,
         fontSize: 11,
         formatter: (v) => `¥${v}`,
       },
@@ -150,7 +153,7 @@ const option = computed(() => {
   align-items: center;
   justify-content: center;
   height: 320px;
-  color: var(--text-muted);
+  color: var(--color-text-tertiary);
   font-size: 14px;
 }
 </style>

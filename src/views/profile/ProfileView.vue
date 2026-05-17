@@ -1,16 +1,22 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { useStatistics } from '@/composables/useStatistics'
 import { formatAmount } from '@/utils/format'
+import { getAvatarUrl } from '@/utils/avatar'
+import { supabase } from '@/api/supabase'
 
 const router = useRouter()
 const { user, userId, profile, updateProfile, logout } = useAuth()
 const { totalExpense, totalIncome, balance, billCount, fetchStats } = useStatistics()
 
+const avatarUrl = computed(() => getAvatarUrl(profile.value?.nickname, 144, profile.value?.avatar_url))
+
 const editing = ref(false)
 const saving = ref(false)
+const uploading = ref(false)
+const fileInput = ref(null)
 const editForm = ref({ nickname: '' })
 
 onMounted(async () => {
@@ -60,6 +66,61 @@ function formatJoinDate(dateStr) {
   const d = new Date(dateStr)
   return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`
 }
+
+function triggerUpload() {
+  fileInput.value?.click()
+}
+
+async function handleFileChange(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+
+  if (!file.type.startsWith('image/')) {
+    ElMessage.warning('请选择图片文件')
+    return
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    ElMessage.warning('图片大小不能超过 2MB')
+    return
+  }
+
+  uploading.value = true
+  try {
+    const ext = file.name.split('.').pop()
+    const filePath = `${userId.value}/avatar.${ext}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true })
+
+    if (uploadError) throw uploadError
+
+    const { data: urlData } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath)
+
+    await updateProfile({ avatar_url: urlData.publicUrl })
+    ElMessage.success('头像上传成功')
+  } catch (err) {
+    ElMessage.error(err.message || '上传失败')
+  } finally {
+    uploading.value = false
+    if (fileInput.value) fileInput.value.value = ''
+  }
+}
+
+async function handleRemoveAvatar() {
+  uploading.value = true
+  try {
+    await updateProfile({ avatar_url: null })
+    ElMessage.success('已恢复默认头像')
+  } catch (err) {
+    ElMessage.error(err.message || '操作失败')
+  } finally {
+    uploading.value = false
+  }
+}
 </script>
 
 <template>
@@ -74,7 +135,38 @@ function formatJoinDate(dateStr) {
     <div class="profile-grid">
       <div class="section-card profile-card">
         <div class="profile-avatar">
-          <el-avatar :size="72" icon="UserFilled" />
+          <div class="avatar-wrapper" @click="triggerUpload">
+            <el-avatar :size="72" :src="avatarUrl" />
+            <div class="avatar-overlay">
+              <el-icon :size="20"><el-icon-camera></el-icon-camera></el-icon>
+            </div>
+          </div>
+          <input
+            ref="fileInput"
+            type="file"
+            accept="image/*"
+            class="file-input-hidden"
+            @change="handleFileChange"
+          />
+          <div class="avatar-actions">
+            <el-button
+              size="small"
+              :loading="uploading"
+              @click="triggerUpload"
+            >
+              上传头像
+            </el-button>
+            <el-button
+              v-if="profile?.avatar_url"
+              size="small"
+              type="danger"
+              plain
+              :disabled="uploading"
+              @click="handleRemoveAvatar"
+            >
+              移除
+            </el-button>
+          </div>
         </div>
 
         <div v-if="!editing" class="profile-info">
@@ -194,6 +286,41 @@ function formatJoinDate(dateStr) {
 
 .profile-avatar {
   margin-bottom: var(--spacing-lg);
+}
+
+.avatar-wrapper {
+  position: relative;
+  cursor: pointer;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: var(--spacing-md);
+
+  &:hover .avatar-overlay {
+    opacity: 1;
+  }
+}
+
+.avatar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  border-radius: var(--radius-full);
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+.avatar-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: center;
 }
 
 .profile-info {

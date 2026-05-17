@@ -6,6 +6,7 @@ import { TitleComponent, TooltipComponent, LegendComponent, GridComponent } from
 import { CanvasRenderer } from 'echarts/renderers'
 import { getInstanceByDom } from 'echarts'
 import VChart from 'vue-echarts'
+import { useChartTheme } from '@/composables/useChartTheme'
 
 use([BarChart, TitleComponent, TooltipComponent, LegendComponent, GridComponent, CanvasRenderer])
 
@@ -14,6 +15,8 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   height: { type: String, default: '320px' },
 })
+
+const { bgCard, borderColor, textPrimary, textSecondary } = useChartTheme()
 
 const wrapperRef = ref(null)
 let resizeObserver = null
@@ -49,9 +52,9 @@ const option = computed(() => {
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-      backgroundColor: 'var(--bg-card)',
-      borderColor: 'var(--border-color)',
-      textStyle: { color: 'var(--text-primary)', fontSize: 13 },
+      backgroundColor: bgCard.value,
+      borderColor: borderColor.value,
+      textStyle: { color: textPrimary.value, fontSize: 13 },
       formatter: (params) => {
         const p = params[0]
         return `${p.name}<br/>${p.marker} 金额: ¥${p.value.toFixed(2)}`
@@ -67,9 +70,9 @@ const option = computed(() => {
     xAxis: {
       type: 'category',
       data: names,
-      axisLine: { lineStyle: { color: 'var(--border-color)' } },
+      axisLine: { lineStyle: { color: borderColor.value } },
       axisLabel: {
-        color: 'var(--text-secondary)',
+        color: textSecondary.value,
         fontSize: 11,
         rotate: names.length > 6 ? 30 : 0,
       },
@@ -77,9 +80,9 @@ const option = computed(() => {
     },
     yAxis: {
       type: 'value',
-      splitLine: { lineStyle: { color: 'var(--border-color)', type: 'dashed' } },
+      splitLine: { lineStyle: { color: borderColor.value, type: 'dashed' } },
       axisLabel: {
-        color: 'var(--text-secondary)',
+        color: textSecondary.value,
         fontSize: 11,
         formatter: (v) => `¥${v}`,
       },
@@ -121,7 +124,7 @@ const option = computed(() => {
   align-items: center;
   justify-content: center;
   height: 320px;
-  color: var(--text-muted);
+  color: var(--color-text-tertiary);
   font-size: 14px;
 }
 </style>

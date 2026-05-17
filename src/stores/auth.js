@@ -17,6 +17,7 @@ export const useAuthStore = defineStore('auth', () => {
   const session = ref(null)
   const loading = ref(false)
   const error = ref(null)
+  const initialized = ref(false)
 
   const isLoggedIn = computed(() => !!user.value && !!session.value)
   const userId = computed(() => user.value?.id || null)
@@ -38,6 +39,7 @@ export const useAuthStore = defineStore('auth', () => {
       error.value = err.message
     } finally {
       loading.value = false
+      initialized.value = true
     }
 
     onAuthStateChange(async (event, newSession) => {
@@ -131,6 +133,7 @@ export const useAuthStore = defineStore('auth', () => {
     session,
     loading,
     error,
+    initialized,
     isLoggedIn,
     userId,
     initAuth,

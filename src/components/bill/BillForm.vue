@@ -40,6 +40,7 @@ const currentCategories = computed(() =>
 const rules = {
   amount: [
     { required: true, message: '请输入金额', trigger: 'blur' },
+    { type: 'number', min: 0.01, message: '金额必须大于0', trigger: 'blur' },
   ],
   categoryId: [
     { required: true, message: '请选择分类', trigger: 'change' },

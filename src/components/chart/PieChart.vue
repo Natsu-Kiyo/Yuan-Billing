@@ -6,6 +6,7 @@ import { TitleComponent, TooltipComponent, LegendComponent } from 'echarts/compo
 import { CanvasRenderer } from 'echarts/renderers'
 import { getInstanceByDom } from 'echarts'
 import VChart from 'vue-echarts'
+import { useChartTheme } from '@/composables/useChartTheme'
 
 use([PieChart, TitleComponent, TooltipComponent, LegendComponent, CanvasRenderer])
 
@@ -14,6 +15,8 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   height: { type: String, default: '320px' },
 })
+
+const { bgCard, borderColor, textPrimary, textSecondary } = useChartTheme()
 
 const wrapperRef = ref(null)
 let resizeObserver = null
@@ -44,13 +47,13 @@ const option = computed(() => ({
   tooltip: {
     trigger: 'item',
     formatter: '{b}: ¥{c} ({d}%)',
-    backgroundColor: 'var(--bg-card)',
-    borderColor: 'var(--border-color)',
-    textStyle: { color: 'var(--text-primary)', fontSize: 13 },
+    backgroundColor: bgCard.value,
+    borderColor: borderColor.value,
+    textStyle: { color: textPrimary.value, fontSize: 13 },
   },
   legend: {
     bottom: 0,
-    textStyle: { color: 'var(--text-secondary)', fontSize: 12 },
+    textStyle: { color: textSecondary.value, fontSize: 12 },
   },
   series: [
     {
@@ -60,7 +63,7 @@ const option = computed(() => ({
       avoidLabelOverlap: false,
       itemStyle: {
         borderRadius: 4,
-        borderColor: 'var(--bg-card)',
+        borderColor: bgCard.value,
         borderWidth: 2,
       },
       label: {
@@ -101,7 +104,7 @@ const option = computed(() => ({
   align-items: center;
   justify-content: center;
   height: 320px;
-  color: var(--text-muted);
+  color: var(--color-text-tertiary);
   font-size: 14px;
 }
 </style>

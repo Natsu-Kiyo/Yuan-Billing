@@ -6,6 +6,24 @@ import { useBills } from '@/composables/useBills'
 import { formatAmount, formatDate, getToday } from '@/utils/format'
 import { getStats } from '@/api/bills'
 import StatCard from '@/components/chart/StatCard.vue'
+import {
+  Top,
+  Bottom,
+  Wallet,
+  Tickets,
+  Food,
+  Van,
+  ShoppingCart,
+  VideoPlay,
+  Reading,
+  House,
+  FirstAidKit,
+  More,
+  Money,
+  Coin,
+  Present,
+  MoreFilled,
+} from '@element-plus/icons-vue'
 
 const router = useRouter()
 const { userId, profile } = useAuth()
@@ -121,8 +139,24 @@ async function loadRecentBills() {
   }
 }
 
-function getCategoryIcon(iconName) {
-  return iconName || 'el-icon-wallet'
+const iconMap = {
+  '餐饮': Food,
+  '交通': Van,
+  '购物': ShoppingCart,
+  '娱乐': VideoPlay,
+  '学习': Reading,
+  '住房': House,
+  '医疗': FirstAidKit,
+  '其他支出': More,
+  '工资': Money,
+  '兼职': Coin,
+  '生活费': Wallet,
+  '红包': Present,
+  '其他收入': MoreFilled,
+}
+
+function getCategoryIcon(categoryName) {
+  return iconMap[categoryName] || Wallet
 }
 
 function getGreeting() {
@@ -172,7 +206,7 @@ function isSelectedDate(dateStr) {
         title="当日支出"
         :value="dayStats.expense"
         prefix="¥"
-        icon="el-icon-top"
+        :icon="Top"
         color="#ef4444"
         :loading="loadingDay"
       />
@@ -180,7 +214,7 @@ function isSelectedDate(dateStr) {
         title="当日收入"
         :value="dayStats.income"
         prefix="¥"
-        icon="el-icon-bottom"
+        :icon="Bottom"
         color="#22c55e"
         :loading="loadingDay"
       />
@@ -188,7 +222,7 @@ function isSelectedDate(dateStr) {
         title="当日结余"
         :value="dayStats.balance"
         prefix="¥"
-        icon="el-icon-wallet"
+        :icon="Wallet"
         color="#6366f1"
         :loading="loadingDay"
       />
@@ -196,7 +230,7 @@ function isSelectedDate(dateStr) {
         title="当日账单数"
         :value="dayStats.count"
         suffix=" 笔"
-        icon="el-icon-tickets"
+        :icon="Tickets"
         color="#f59e0b"
         :loading="loadingDay"
       />
@@ -290,7 +324,7 @@ function isSelectedDate(dateStr) {
               :style="{ background: bill.categories?.color || '#6366f1' }"
             >
               <el-icon :size="16" color="#fff">
-                <component :is="getCategoryIcon(bill.categories?.icon)" />
+                <component :is="getCategoryIcon(bill.categories?.name)" />
               </el-icon>
             </div>
             <div class="recent-info">

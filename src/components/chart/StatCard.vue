@@ -4,7 +4,7 @@ defineProps({
   value: { type: [String, Number], default: 0 },
   prefix: { type: String, default: '' },
   suffix: { type: String, default: '' },
-  icon: { type: String, default: '' },
+  icon: { type: Object, default: null },
   color: { type: String, default: '#6366f1' },
   loading: { type: Boolean, default: false },
 })
@@ -31,8 +31,8 @@ defineProps({
 
 <style lang="less" scoped>
 .stat-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   transition: all 0.2s ease;
@@ -65,7 +65,7 @@ defineProps({
 
 .stat-card-title {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
@@ -82,7 +82,7 @@ defineProps({
 .stat-card-value {
   font-size: 28px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--color-text-primary);
   line-height: 1.2;
 }
 
@@ -95,13 +95,13 @@ defineProps({
 .stat-card-suffix {
   font-size: 14px;
   font-weight: 400;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   margin-left: 4px;
 }
 
 .stat-card-loading {
   font-size: 28px;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--color-text-tertiary);
 }
 </style>

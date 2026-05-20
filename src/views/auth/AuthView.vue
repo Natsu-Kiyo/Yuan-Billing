@@ -27,17 +27,15 @@ const form = reactive({
   confirmPassword: '',
 })
 
-// 切换模式时清空表单值和校验状态
+// 切换模式时清空字段值（表单通过 :key 自动重建）
 function switchMode(m) {
   if (m === mode.value) return
   mode.value = m
   router.replace({ name: m === 'register' ? 'Register' : 'Login' })
-  // 先清空字段值，再清除校验状态
   form.nickname = ''
   form.email = ''
   form.password = ''
   form.confirmPassword = ''
-  formRef.value?.clearValidate()
 }
 
 // 登录表单校验规则
@@ -88,7 +86,7 @@ const isLogin = computed(() => mode.value === 'login')
 async function handleLogin() {
   if (!formRef.value) return
   try {
-    await formRef.value.validate(loginRules)
+    await formRef.value.validate()
     await login({ email: form.email, password: form.password })
     ElMessage.success('登录成功')
     router.push('/dashboard')
@@ -103,13 +101,13 @@ async function handleLogin() {
 async function handleRegister() {
   if (!formRef.value) return
   try {
-    await formRef.value.validate(registerRules)
+    await formRef.value.validate()
     await register({
       email: form.email,
       password: form.password,
       nickname: form.nickname,
     })
-    ElMessage.success('注册成功，请登录')
+    ElMessage.success('注册成功，已自动登录')
     switchMode('login')
   } catch (err) {
     if (err?.message) {
@@ -172,7 +170,9 @@ function handleSubmit() {
 
         <el-form
           ref="formRef"
+          :key="mode"
           :model="form"
+          :rules="rules"
           label-position="top"
           @submit.prevent="handleSubmit"
         >

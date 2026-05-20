@@ -1,4 +1,5 @@
 <script setup>
+// 空状态占位组件：文件夹图标 + 描述文字
 defineProps({
   description: {
     type: String,

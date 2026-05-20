@@ -1,4 +1,5 @@
 <script setup>
+// 账单筛选栏：按类型 / 分类 / 日期范围 / 金额区间过滤
 import { ref, computed, watch } from 'vue'
 import { useBills } from '@/composables/useBills'
 
@@ -13,6 +14,7 @@ const amountError = ref('')
 
 let amountTimer = null
 
+// 双向同步 store 中的日期筛选值到本地日期选择器
 watch(
   () => [filters.value.startDate, filters.value.endDate],
   ([start, end]) => {
@@ -27,6 +29,7 @@ watch(
   { immediate: true }
 )
 
+// 双向同步 store 中的金额筛选值到本地输入框
 watch(
   () => [filters.value.minAmount, filters.value.maxAmount],
   ([min, max]) => {
@@ -36,6 +39,7 @@ watch(
   { immediate: true }
 )
 
+// 防抖 400ms 后校验金额区间合法性并更新筛选条件
 watch([minAmount, maxAmount], () => {
   if (amountTimer) clearTimeout(amountTimer)
   amountTimer = setTimeout(() => {
@@ -54,6 +58,7 @@ watch([minAmount, maxAmount], () => {
   }, 400)
 })
 
+// 根据当前选中的类型返回对应的分类列表
 const currentCategories = computed(() => {
   if (filters.value.type === 'expense') return expenseCategories.value
   if (filters.value.type === 'income') return incomeCategories.value
@@ -70,6 +75,16 @@ function handleCategoryChange(categoryId) {
 
 function handleDateChange() {
   setFilters({ startDate: startDate.value, endDate: endDate.value })
+}
+
+/** 禁用结束日期之前的所有日期（用于开始日期选择器） */
+function disableStartDate(date) {
+  return endDate.value ? date.getTime() > new Date(endDate.value).getTime() : false
+}
+
+/** 禁用开始日期之后的所有日期（用于结束日期选择器） */
+function disableEndDate(date) {
+  return startDate.value ? date.getTime() < new Date(startDate.value).getTime() : false
 }
 </script>
 
@@ -113,6 +128,7 @@ function handleDateChange() {
         value-format="YYYY-MM-DD"
         size="default"
         style="width: 150px"
+        :disabled-date="disableStartDate"
         @change="handleDateChange"
       />
       <span class="date-separator">至</span>
@@ -123,6 +139,7 @@ function handleDateChange() {
         value-format="YYYY-MM-DD"
         size="default"
         style="width: 150px"
+        :disabled-date="disableEndDate"
         @change="handleDateChange"
       />
     </div>

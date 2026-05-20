@@ -1,3 +1,4 @@
+// 统计组合式函数：对 useStatisticsStore 的响应式封装
 import { storeToRefs } from 'pinia'
 import { useStatisticsStore } from '@/stores/statistics'
 

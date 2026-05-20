@@ -1,4 +1,5 @@
 <script setup>
+// 仪表盘首页：当日收支统计、热力图日历、最近账单、欢迎问候
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
@@ -29,6 +30,7 @@ const router = useRouter()
 const { userId, profile } = useAuth()
 const { fetchRecentBills } = useBills()
 
+// 状态
 const selectedDate = ref(getToday())
 const dayStats = ref({ expense: 0, income: 0, balance: 0, count: 0 })
 const monthBills = ref([])
@@ -37,6 +39,7 @@ const loadingDay = ref(false)
 const loadingMonth = ref(false)
 const loadingBills = ref(false)
 
+// 日历相关常量
 const today = getToday()
 const now = new Date()
 const year = now.getFullYear()
@@ -46,6 +49,7 @@ const firstDayOfWeek = new Date(year, month, 1).getDay()
 
 const weekDays = ['一', '二', '三', '四', '五', '六', '日']
 
+/** 构建热力图日历数据：按日汇总支出金额，计算颜色强度 */
 const calendarData = computed(() => {
   const dailyMap = {}
   monthBills.value.forEach((b) => {
@@ -80,17 +84,20 @@ const calendarData = computed(() => {
   return { weeks, maxAmount }
 })
 
+// 初始化数据
 onMounted(async () => {
   if (!userId.value) return
   await Promise.all([fetchDayStats(), fetchMonthBills(), loadRecentBills()])
 })
 
+// 选中日期变化时重新拉取当日统计
 watch(selectedDate, () => {
   if (userId.value) {
     fetchDayStats()
   }
 })
 
+/** 拉取选中日期的收支统计 */
 async function fetchDayStats() {
   loadingDay.value = true
   try {
@@ -115,6 +122,7 @@ async function fetchDayStats() {
   }
 }
 
+/** 拉取当前整月的账单用于日历热力图 */
 async function fetchMonthBills() {
   loadingMonth.value = true
   try {
@@ -128,6 +136,7 @@ async function fetchMonthBills() {
   }
 }
 
+/** 拉取最近 5 条账单 */
 async function loadRecentBills() {
   loadingBills.value = true
   try {
@@ -139,6 +148,7 @@ async function loadRecentBills() {
   }
 }
 
+// 分类名称 → 图标映射
 const iconMap = {
   '餐饮': Food,
   '交通': Van,
@@ -159,6 +169,7 @@ function getCategoryIcon(categoryName) {
   return iconMap[categoryName] || Wallet
 }
 
+/** 根据当前小时返回问候语 */
 function getGreeting() {
   const hour = new Date().getHours()
   if (hour < 6) return '夜深了'
@@ -169,6 +180,7 @@ function getGreeting() {
   return '晚上好'
 }
 
+/** 根据支出强度计算格子颜色 */
 function cellColor(intensity) {
   if (intensity <= 0) return 'var(--color-bg-tertiary)'
   const r = 239

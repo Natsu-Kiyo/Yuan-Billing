@@ -1,4 +1,5 @@
 <script setup>
+// 错误边界组件：展示异常信息和调用栈，支持重试
 import { ref } from 'vue'
 
 const props = defineProps({

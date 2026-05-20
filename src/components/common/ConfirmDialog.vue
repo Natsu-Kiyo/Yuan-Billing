@@ -1,4 +1,5 @@
 <script setup>
+// 确认对话框：可配置标题、内容、按钮文案
 defineProps({
   visible: {
     type: Boolean,

@@ -1,4 +1,5 @@
 <script setup>
+// 侧边导航栏：菜单项配置、折叠/展开、当前路由高亮
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -21,6 +22,7 @@ const emit = defineEmits(['toggle'])
 const route = useRoute()
 const router = useRouter()
 
+// 侧边栏菜单配置
 const menuItems = [
   {
     path: '/dashboard',
@@ -49,6 +51,7 @@ const menuItems = [
   },
 ]
 
+// 当前激活的菜单项对应路由
 const activeMenu = computed(() => route.path)
 
 function navigate(path) {

@@ -1,3 +1,4 @@
+// 认证组合式函数：对 useAuthStore 的响应式封装
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 

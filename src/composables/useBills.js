@@ -1,3 +1,4 @@
+// 账单组合式函数：组合 useBillsStore + useCategoriesStore 的统一封装
 import { storeToRefs } from 'pinia'
 import { useBillsStore } from '@/stores/bills'
 import { useCategoriesStore } from '@/stores/categories'

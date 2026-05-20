@@ -1,4 +1,5 @@
 <script setup>
+// 饼图组件（ECharts 环形图）：分类占比展示，支持 ResizeObserver 自适应
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { use } from 'echarts/core'
 import { PieChart } from 'echarts/charts'
@@ -21,6 +22,7 @@ const { bgCard, borderColor, textPrimary, textSecondary } = useChartTheme()
 const wrapperRef = ref(null)
 let resizeObserver = null
 
+// 容器尺寸变化时手动触发 ECharts resize，解决 CSS 过渡导致的尺寸不准确问题
 onMounted(() => {
   if (wrapperRef.value) {
     resizeObserver = new ResizeObserver(() => {

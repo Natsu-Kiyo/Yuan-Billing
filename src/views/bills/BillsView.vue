@@ -1,4 +1,5 @@
 <script setup>
+// 账单列表页：筛选、分页、增删改、CSV 导入导出
 import { ref, onMounted, watch } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useBills } from '@/composables/useBills'
@@ -18,27 +19,26 @@ const {
   pagination,
   fetchBills,
   removeBill,
-  setFilters,
   setPage,
-  setCurrentBill,
   fetchCategories,
 } = useBills()
 
 const formVisible = ref(false)
-const editData = ref(null)
+const editData = ref(null)       // 编辑时传入已有数据，null 表示新增
 const deleteTarget = ref(null)
 const deleteVisible = ref(false)
 const exporting = ref(false)
 const importing = ref(false)
 const fileInput = ref(null)
 
+// 初始化：加载分类和账单列表
 onMounted(async () => {
   if (!userId.value) return
-  bills.value = []
   await fetchCategories()
   await fetchBills(userId.value)
 })
 
+// 筛选条件变化自动重新查询
 watch(
   () => [filters.value.type, filters.value.categoryId, filters.value.startDate, filters.value.endDate, filters.value.minAmount, filters.value.maxAmount],
   () => {
@@ -48,14 +48,7 @@ watch(
   }
 )
 
-watch(
-  () => pagination.value.page,
-  () => {
-    if (userId.value) {
-      fetchBills(userId.value)
-    }
-  }
-)
+// --- CRUD 操作 ---
 
 function handleAdd() {
   editData.value = null
@@ -93,8 +86,14 @@ function handleFormSubmit() {
 
 function handlePageChange(page) {
   setPage(page)
+  if (userId.value) {
+    fetchBills(userId.value)
+  }
 }
 
+// --- CSV 导入导出 ---
+
+/** 构建分类名称 → ID 的映射表 */
 function buildCategoryNameMap() {
   const map = {}
   categoriesStore.categories.forEach((c) => {
@@ -103,6 +102,7 @@ function buildCategoryNameMap() {
   return map
 }
 
+/** 导出全部账单为 UTF-8 BOM CSV */
 async function handleExport() {
   exporting.value = true
   try {
@@ -144,6 +144,7 @@ function handleImportClick() {
   fileInput.value?.click()
 }
 
+/** 解析 CSV 文件并逐行创建账单 */
 async function handleFileChange(e) {
   const file = e.target.files?.[0]
   if (!file) return
@@ -159,6 +160,7 @@ async function handleFileChange(e) {
 
     const nameToId = buildCategoryNameMap()
 
+    // 处理 CSV 转义逗号
     const parseRow = (line) => {
       const result = []
       let current = ''

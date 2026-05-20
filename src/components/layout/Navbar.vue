@@ -1,4 +1,5 @@
 <script setup>
+// 顶部导航栏：菜单切换按钮、用户头像、下拉菜单（个人中心/退出登录）、主题切换
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'

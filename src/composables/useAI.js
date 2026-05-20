@@ -1,3 +1,4 @@
+// AI 对话组合式函数：对 useAIStore 的响应式封装
 import { storeToRefs } from 'pinia'
 import { useAIStore } from '@/stores/ai'
 

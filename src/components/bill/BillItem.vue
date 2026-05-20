@@ -1,4 +1,5 @@
 <script setup>
+// 账单卡片组件：根据分类展示图标和配色样式的单条账单
 import { computed } from 'vue'
 import {
   Food,
@@ -26,6 +27,7 @@ const props = defineProps({
 
 const emit = defineEmits(['edit', 'delete'])
 
+// 分类名称 → 图标映射表
 const iconMap = {
   '餐饮': Food,
   '交通': Van,
@@ -45,6 +47,7 @@ const iconMap = {
 const categoryColor = props.bill?.categories?.color || '#6366f1'
 const categoryName = props.bill?.categories?.name || '未分类'
 const isExpense = props.bill?.type === 'expense'
+// 动态选择与当前分类对应的图标组件
 const iconComponent = computed(() => iconMap[categoryName] || Wallet)
 </script>
 

@@ -1,4 +1,5 @@
 <script setup>
+// 折线图组件（ECharts）：月度收支趋势，支持 ResizeObserver 自适应
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { use } from 'echarts/core'
 import { LineChart } from 'echarts/charts'
@@ -21,6 +22,7 @@ const { bgCard, borderColor, textPrimary, textSecondary } = useChartTheme()
 const wrapperRef = ref(null)
 let resizeObserver = null
 
+// 容器尺寸变化时手动触发 ECharts resize
 onMounted(() => {
   if (wrapperRef.value) {
     resizeObserver = new ResizeObserver(() => {
@@ -43,6 +45,7 @@ onUnmounted(() => {
   }
 })
 
+// 从原始数据中提取 months / expenses / incomes 三条序列
 const option = computed(() => {
   const months = props.data.map((d) => d.month)
   const expenses = props.data.map((d) => d.expense)

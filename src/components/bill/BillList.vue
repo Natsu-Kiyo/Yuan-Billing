@@ -1,4 +1,5 @@
 <script setup>
+// 账单列表容器：根据 loading / 数据量 渲染加载态、账单列表或空状态
 import BillItem from './BillItem.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'

@@ -1,5 +1,7 @@
+// 账单相关 API：CRUD、分页查询、统计、获取全部账单
 import { supabase } from './supabase'
 
+/** 分页查询账单列表，支持按类型、分类、日期范围、金额范围筛选 */
 export async function fetchBills({ userId, type, categoryId, startDate, endDate, minAmount, maxAmount, page = 1, pageSize = 10 }) {
   let query = supabase
     .from('bills')
@@ -41,17 +43,7 @@ export async function fetchBills({ userId, type, categoryId, startDate, endDate,
   return { data, total: count }
 }
 
-export async function getBillById(id) {
-  const { data, error } = await supabase
-    .from('bills')
-    .select('*, categories(name, icon, color)')
-    .eq('id', id)
-    .single()
-
-  if (error) throw error
-  return data
-}
-
+/** 创建一条新账单记录 */
 export async function createBill(data) {
   const { data: result, error } = await supabase
     .from('bills')
@@ -63,6 +55,7 @@ export async function createBill(data) {
   return result
 }
 
+/** 更新指定账单 */
 export async function updateBill(id, data) {
   const { data: result, error } = await supabase
     .from('bills')
@@ -75,6 +68,7 @@ export async function updateBill(id, data) {
   return result
 }
 
+/** 删除指定账单 */
 export async function deleteBill(id) {
   const { error } = await supabase
     .from('bills')
@@ -84,18 +78,28 @@ export async function deleteBill(id) {
   if (error) throw error
 }
 
+/** 获取时间范围内的账单统计数据（用于图表分析） */
 export async function getStats({ userId, startDate, endDate }) {
-  const { data, error } = await supabase
+  let query = supabase
     .from('bills')
     .select('type, amount, category_id, bill_date, categories(name, icon, color)')
     .eq('user_id', userId)
-    .gte('bill_date', startDate)
-    .lte('bill_date', endDate)
+
+  if (startDate) {
+    query = query.gte('bill_date', startDate)
+  }
+
+  if (endDate) {
+    query = query.lte('bill_date', endDate)
+  }
+
+  const { data, error } = await query
 
   if (error) throw error
   return data
 }
 
+/** 获取最近 N 条账单（首页仪表盘使用） */
 export async function getRecentBills({ userId, limit = 5 }) {
   const { data, error } = await supabase
     .from('bills')
@@ -109,6 +113,7 @@ export async function getRecentBills({ userId, limit = 5 }) {
   return data
 }
 
+/** 获取用户的全部账单（用于 CSV 导出） */
 export async function fetchAllBills(userId) {
   const { data, error } = await supabase
     .from('bills')

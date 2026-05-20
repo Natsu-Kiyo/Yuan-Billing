@@ -1,4 +1,5 @@
 <script setup>
+// 统计卡片组件：标题、数值、前缀/后缀、图标、加载态、颜色主题
 defineProps({
   title: { type: String, required: true },
   value: { type: [String, Number], default: 0 },

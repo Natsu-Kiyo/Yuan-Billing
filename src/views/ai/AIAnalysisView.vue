@@ -1,4 +1,5 @@
 <script setup>
+// AI 分析页：流式对话、快捷提问、消费报告生成、Markdown 渲染
 import { ref, onMounted, nextTick, watch } from 'vue'
 import MarkdownIt from 'markdown-it'
 import { useAuth } from '@/composables/useAuth'
@@ -6,6 +7,7 @@ import { useAI } from '@/composables/useAI'
 import { useStatistics } from '@/composables/useStatistics'
 import { formatAmount } from '@/utils/format'
 
+// Markdown 渲染器：支持换行和自动链接
 const md = new MarkdownIt({ breaks: true, linkify: true })
 
 const { userId } = useAuth()
@@ -23,6 +25,7 @@ const inputText = ref('')
 const chatContainer = ref(null)
 const inputFocused = ref(false)
 
+// 预设快捷提问
 const quickQuestions = [
   '分析一下我的消费习惯',
   '帮我制定一个省钱计划',
@@ -31,11 +34,13 @@ const quickQuestions = [
   '如何减少不必要的开支？',
 ]
 
+// 初始化统计上下文
 onMounted(async () => {
   if (!userId.value) return
   await fetchStats(userId.value)
 })
 
+// 新消息到达或流式输出时，自动滚动到底部
 watch(
   () => [messages.value.length, streamingContent.value],
   () => {
@@ -47,6 +52,7 @@ watch(
   }
 )
 
+/** 将 Markdown 渲染为安全的 HTML */
 function renderMarkdown(content) {
   const cleaned = (content || '').replace(/\n{2,}/g, '\n')
   let html = md.render(cleaned)
@@ -55,6 +61,7 @@ function renderMarkdown(content) {
   return html
 }
 
+/** 构建传给 AI 的统计数据上下文 */
 function buildStats() {
   return {
     totalExpense: totalExpense.value,
@@ -68,6 +75,7 @@ function buildStats() {
   }
 }
 
+/** 发送消息（Enter 触发，Shift+Enter 换行） */
 function handleSend() {
   const text = inputText.value.trim()
   if (!text || loading.value) return
@@ -75,11 +83,13 @@ function handleSend() {
   inputText.value = ''
 }
 
+/** 点击快捷提问 */
 function handleQuickQuestion(q) {
   inputText.value = q
   handleSend()
 }
 
+/** 生成消费分析报告 */
 function handleGenerateReport() {
   generateReport(buildStats())
 }
@@ -91,6 +101,7 @@ function handleKeydown(e) {
   }
 }
 
+/** 格式化时间戳为 HH:MM */
 function formatTime(ts) {
   const d = new Date(ts)
   const h = String(d.getHours()).padStart(2, '0')

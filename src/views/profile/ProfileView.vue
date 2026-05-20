@@ -1,4 +1,5 @@
 <script setup>
+// 个人中心页：资料展示、昵称编辑、头像上传/移除、统计概览、退出登录
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
@@ -11,6 +12,7 @@ const router = useRouter()
 const { user, userId, profile, updateProfile, logout } = useAuth()
 const { totalExpense, totalIncome, balance, billCount, fetchStats } = useStatistics()
 
+// 头像 URL：优先自定义，否则通过昵称自动生成
 const avatarUrl = computed(() => getAvatarUrl(profile.value?.nickname, 144, profile.value?.avatar_url))
 
 const editing = ref(false)
@@ -24,6 +26,8 @@ onMounted(async () => {
     await fetchStats(userId.value)
   }
 })
+
+// --- 昵称编辑 ---
 
 function startEdit() {
   editForm.value.nickname = profile.value?.nickname || ''
@@ -51,6 +55,8 @@ async function handleSave() {
   }
 }
 
+// --- 退出登录 ---
+
 async function handleLogout() {
   try {
     await logout()
@@ -61,16 +67,20 @@ async function handleLogout() {
   }
 }
 
+/** 格式化注册时间为中文日期 */
 function formatJoinDate(dateStr) {
   if (!dateStr) return '--'
   const d = new Date(dateStr)
   return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`
 }
 
+// --- 头像上传 ---
+
 function triggerUpload() {
   fileInput.value?.click()
 }
 
+/** 上传头像到 Supabase Storage，更新 profile */
 async function handleFileChange(e) {
   const file = e.target.files?.[0]
   if (!file) return
@@ -110,6 +120,7 @@ async function handleFileChange(e) {
   }
 }
 
+/** 移除自定义头像，恢复默认 */
 async function handleRemoveAvatar() {
   uploading.value = true
   try {

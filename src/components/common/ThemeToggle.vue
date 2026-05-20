@@ -1,4 +1,5 @@
 <script setup>
+// 主题切换按钮：亮色/暗色一键切换
 import { useTheme } from '@/composables/useTheme'
 
 const { isDark, toggleTheme } = useTheme()

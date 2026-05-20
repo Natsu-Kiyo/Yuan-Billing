@@ -1,4 +1,5 @@
 <script setup>
+// 加载中占位组件：旋转动画 + 可选文字
 defineProps({
   text: {
     type: String,

@@ -31,13 +31,5 @@ export default defineConfig({
       },
     },
   },
-  server: {
-    proxy: {
-      '/api/ai': {
-        target: 'https://open.bigmodel.cn',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/ai/, ''),
-      },
-    },
-  },
+  server: {},
 })

@@ -1,4 +1,5 @@
 <script setup>
+// 账单表单弹窗：新增 / 编辑账单，含金额校验、分类联动
 import { ref, reactive, watch, computed } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useBills } from '@/composables/useBills'
@@ -22,6 +23,7 @@ const { expenseCategories, incomeCategories, addBill, editBill } = useBills()
 
 const formRef = ref(null)
 const submitting = ref(false)
+// 避免初始化期间类型切换导致分类被误清空
 const isInitializing = ref(false)
 const isEdit = computed(() => !!props.editData)
 
@@ -33,10 +35,12 @@ const form = reactive({
   note: '',
 })
 
+// 根据当前类型返回对应的分类列表
 const currentCategories = computed(() =>
   form.type === 'expense' ? expenseCategories.value : incomeCategories.value
 )
 
+// 自定义金额校验规则
 const validateAmount = (_rule, value, callback) => {
   const num = parseFloat(value)
   if (isNaN(num) || num <= 0) {
@@ -59,6 +63,7 @@ const rules = {
   ],
 }
 
+// 弹窗打开时初始化表单数据（新增或编辑回填）
 watch(
   () => props.visible,
   (val) => {
@@ -81,6 +86,7 @@ watch(
   }
 )
 
+// 切换类型时清空分类选择（非初始化阶段）
 watch(
   () => form.type,
   () => {
@@ -90,6 +96,7 @@ watch(
   }
 )
 
+// 提交表单：校验通过后根据新增/编辑调用对应 API
 async function handleSubmit() {
   if (!formRef.value) return
 

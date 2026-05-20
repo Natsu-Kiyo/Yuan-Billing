@@ -1,3 +1,4 @@
+// 账单状态管理：分页查询、筛选、增删改、收支汇总
 import { defineStore } from 'pinia'
 import { ref, reactive, computed } from 'vue'
 import {
@@ -15,6 +16,7 @@ export const useBillsStore = defineStore('bills', () => {
   const loading = ref(false)
   const error = ref(null)
 
+  // 筛选条件（响应式对象，修改后自动触发重新查询）
   const filters = reactive({
     type: 'all',
     categoryId: null,
@@ -24,12 +26,14 @@ export const useBillsStore = defineStore('bills', () => {
     maxAmount: null,
   })
 
+  // 分页状态
   const pagination = reactive({
     page: 1,
     pageSize: 10,
     total: 0,
   })
 
+  // 基于当前列表实时计算的收支汇总
   const totalIncome = computed(() =>
     bills.value
       .filter((b) => b.type === 'income')
@@ -44,6 +48,7 @@ export const useBillsStore = defineStore('bills', () => {
 
   const balance = computed(() => totalIncome.value - totalExpense.value)
 
+  /** 按当前筛选条件和分页参数查询账单 */
   async function fetchBills(userId) {
     loading.value = true
     error.value = null
@@ -70,11 +75,13 @@ export const useBillsStore = defineStore('bills', () => {
     }
   }
 
+  /** 新增账单（不更新本地列表，由调用方刷新） */
   async function addBill(data) {
     const result = await apiCreateBill(data)
     return result
   }
 
+  /** 编辑账单，同时更新本地列表中对应项 */
   async function editBill(id, data) {
     const result = await apiUpdateBill(id, data)
     const index = bills.value.findIndex((b) => b.id === id)
@@ -84,28 +91,34 @@ export const useBillsStore = defineStore('bills', () => {
     return result
   }
 
+  /** 删除账单并从本地列表中移除 */
   async function removeBill(id) {
     await apiDeleteBill(id)
     bills.value = bills.value.filter((b) => b.id !== id)
   }
 
+  /** 更新筛选条件（自动重置到第一页） */
   function setFilters(newFilters) {
     Object.assign(filters, newFilters)
     pagination.page = 1
   }
 
+  /** 跳转页码 */
   function setPage(page) {
     pagination.page = page
   }
 
+  /** 设置当前选中的账单（供编辑弹窗使用） */
   function setCurrentBill(bill) {
     currentBill.value = bill
   }
 
+  /** 获取时间范围内的账单统计数据 */
   async function fetchStats(userId, startDate, endDate) {
     return await apiGetStats({ userId, startDate, endDate })
   }
 
+  /** 获取最近 N 条账单 */
   async function fetchRecentBills(userId, limit = 5) {
     return await apiGetRecentBills({ userId, limit })
   }

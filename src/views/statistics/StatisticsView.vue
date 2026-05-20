@@ -1,9 +1,11 @@
 <script setup>
+// 统计分析页：日期范围筛选、收支概览、分类饼图、月度趋势图
 import { ref, onMounted, watch, defineAsyncComponent } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useStatistics } from '@/composables/useStatistics'
 import StatCard from '@/components/chart/StatCard.vue'
 
+// 图表组件懒加载，减少首屏体积
 const PieChart = defineAsyncComponent(() => import('@/components/chart/PieChart.vue'))
 const LineChart = defineAsyncComponent(() => import('@/components/chart/LineChart.vue'))
 const BarChart = defineAsyncComponent(() => import('@/components/chart/BarChart.vue'))
@@ -24,7 +26,6 @@ const {
   setDateRange,
 } = useStatistics()
 
-const dateRangeValue = ref(null)
 const startDateValue = ref(null)
 const endDateValue = ref(null)
 let debounceTimer = null
@@ -34,18 +35,17 @@ onMounted(async () => {
   await fetchStats(userId.value)
 })
 
+// 同步 store dateRange 到本地 UI 绑定值
 watch(
   () => [dateRange.startDate, dateRange.endDate],
   () => {
-    if (dateRange.startDate && dateRange.endDate) {
-      dateRangeValue.value = [dateRange.startDate, dateRange.endDate]
-    }
     startDateValue.value = dateRange.startDate || null
     endDateValue.value = dateRange.endDate || null
   },
   { immediate: true }
 )
 
+/** 日期范围变化时防抖拉取统计 */
 function handleDateChange() {
   setDateRange(startDateValue.value, endDateValue.value)
   if (!startDateValue.value || !endDateValue.value) return
@@ -55,6 +55,16 @@ function handleDateChange() {
       fetchStats(userId.value)
     }
   }, 300)
+}
+
+/** 禁用结束日期之后的所有日期（用于开始日期选择器） */
+function disableStartDate(date) {
+  return endDateValue.value ? date.getTime() > new Date(endDateValue.value).getTime() : false
+}
+
+/** 禁用开始日期之前的所有日期（用于结束日期选择器） */
+function disableEndDate(date) {
+  return startDateValue.value ? date.getTime() < new Date(startDateValue.value).getTime() : false
 }
 </script>
 
@@ -73,6 +83,7 @@ function handleDateChange() {
           value-format="YYYY-MM-DD"
           size="default"
           style="width: 150px"
+          :disabled-date="disableStartDate"
           @change="handleDateChange"
         />
         <span class="date-separator">至</span>
@@ -83,6 +94,7 @@ function handleDateChange() {
           value-format="YYYY-MM-DD"
           size="default"
           style="width: 150px"
+          :disabled-date="disableEndDate"
           @change="handleDateChange"
         />
       </div>

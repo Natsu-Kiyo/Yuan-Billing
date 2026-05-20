@@ -1,4 +1,5 @@
 <script setup>
+// 404 页面：路由未匹配时的兜底展示
 import { useRouter } from 'vue-router'
 
 const router = useRouter()

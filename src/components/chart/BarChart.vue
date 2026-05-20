@@ -1,4 +1,5 @@
 <script setup>
+// 柱状图组件（ECharts）：分类金额对比，带圆角柱体，支持 ResizeObserver 自适应
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { use } from 'echarts/core'
 import { BarChart } from 'echarts/charts'
@@ -21,6 +22,7 @@ const { bgCard, borderColor, textPrimary, textSecondary } = useChartTheme()
 const wrapperRef = ref(null)
 let resizeObserver = null
 
+// 容器尺寸变化时手动触发 ECharts resize
 onMounted(() => {
   if (wrapperRef.value) {
     resizeObserver = new ResizeObserver(() => {
@@ -43,6 +45,7 @@ onUnmounted(() => {
   }
 })
 
+// 从 data 中提取名称、金额、颜色
 const option = computed(() => {
   const names = props.data.map((d) => d.name)
   const values = props.data.map((d) => d.value)

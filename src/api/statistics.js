@@ -1,5 +1,10 @@
+// 统计 API：聚合账单原始数据为图表可用的结构化统计数据
 import { getStats as apiGetStats } from './bills'
 
+/** 
+ * 获取并聚合统计数据
+ * 返回：总收支、分类汇总（支出/收入）、月度趋势、账单总数
+ */
 export async function fetchStats({ userId, startDate, endDate }) {
   const rawData = await apiGetStats({ userId, startDate, endDate })
 
@@ -11,7 +16,7 @@ export async function fetchStats({ userId, startDate, endDate }) {
 
   rawData.forEach((item) => {
     const amount = Number(item.amount)
-    const month = item.bill_date?.substring(0, 7)
+    const month = item.bill_date?.substring(0, 7) // 提取 YYYY-MM
     const catName = item.categories?.name || '未分类'
     const catColor = item.categories?.color || '#6366f1'
 
@@ -29,6 +34,7 @@ export async function fetchStats({ userId, startDate, endDate }) {
       incomeByCategory[catName].value += amount
     }
 
+    // 按月度累计收支
     if (month) {
       if (!monthlyMap[month]) {
         monthlyMap[month] = { month, expense: 0, income: 0 }
@@ -41,6 +47,7 @@ export async function fetchStats({ userId, startDate, endDate }) {
     }
   })
 
+  // 转换为数组并排序
   const expenseList = Object.values(expenseByCategory).sort((a, b) => b.value - a.value)
   const incomeList = Object.values(incomeByCategory).sort((a, b) => b.value - a.value)
   const monthlyTrend = Object.values(monthlyMap).sort((a, b) => a.month.localeCompare(b.month))

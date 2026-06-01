@@ -7,6 +7,7 @@ import { useStatistics } from '@/composables/useStatistics'
 import { formatAmount } from '@/utils/format'
 import { getAvatarUrl } from '@/utils/avatar'
 import { supabase } from '@/api/supabase'
+import AvatarCropper from '@/components/common/AvatarCropper.vue'
 
 const router = useRouter()
 const { user, userId, profile, updateProfile, logout } = useAuth()
@@ -20,6 +21,9 @@ const saving = ref(false)
 const uploading = ref(false)
 const fileInput = ref(null)
 const editForm = ref({ nickname: '' })
+
+const cropperVisible = ref(false)
+const pendingFile = ref(null)
 
 onMounted(async () => {
   if (userId.value) {
@@ -80,7 +84,7 @@ function triggerUpload() {
   fileInput.value?.click()
 }
 
-/** 上传头像到 Supabase Storage，更新 profile */
+/** 选择文件后打开裁剪弹窗 */
 async function handleFileChange(e) {
   const file = e.target.files?.[0]
   if (!file) return
@@ -90,19 +94,25 @@ async function handleFileChange(e) {
     return
   }
 
-  if (file.size > 2 * 1024 * 1024) {
-    ElMessage.warning('图片大小不能超过 2MB')
+  if (file.size > 5 * 1024 * 1024) {
+    ElMessage.warning('图片大小不能超过 5MB')
     return
   }
 
+  pendingFile.value = file
+  cropperVisible.value = true
+  if (fileInput.value) fileInput.value.value = ''
+}
+
+async function handleCropped(croppedFile) {
   uploading.value = true
   try {
-    const ext = file.name.split('.').pop()
-    const filePath = `${userId.value}/avatar.${ext}`
+    const timestamp = Date.now()
+    const filePath = `${userId.value}/avatar_${timestamp}.png`
 
     const { error: uploadError } = await supabase.storage
       .from('avatars')
-      .upload(filePath, file, { upsert: true })
+      .upload(filePath, croppedFile, { upsert: true })
 
     if (uploadError) throw uploadError
 
@@ -116,8 +126,11 @@ async function handleFileChange(e) {
     ElMessage.error(err.message || '上传失败')
   } finally {
     uploading.value = false
-    if (fileInput.value) fileInput.value.value = ''
   }
+}
+
+function handleCropperClose() {
+  pendingFile.value = null
 }
 
 /** 移除自定义头像，恢复默认 */
@@ -261,6 +274,13 @@ async function handleRemoveAvatar() {
       </div>
     </div>
   </div>
+
+  <AvatarCropper
+    v-model:visible="cropperVisible"
+    :file="pendingFile"
+    @cropped="handleCropped"
+    @update:visible="handleCropperClose"
+  />
 </template>
 
 <style lang="less" scoped>

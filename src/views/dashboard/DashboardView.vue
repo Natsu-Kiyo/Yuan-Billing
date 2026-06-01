@@ -24,13 +24,15 @@ import {
   Coin,
   Present,
   MoreFilled,
+  ArrowLeft,
+  ArrowRight,
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const { userId, profile } = useAuth()
 const { fetchRecentBills } = useBills()
 
-// 状态
+//状态
 const selectedDate = ref(getToday())
 const dayStats = ref({ expense: 0, income: 0, balance: 0, count: 0 })
 const monthBills = ref([])
@@ -39,13 +41,14 @@ const loadingDay = ref(false)
 const loadingMonth = ref(false)
 const loadingBills = ref(false)
 
-// 日历相关常量
+//日历相关常量
 const today = getToday()
-const now = new Date()
-const year = now.getFullYear()
-const month = now.getMonth()
-const daysInMonth = new Date(year, month + 1, 0).getDate()
-const firstDayOfWeek = new Date(year, month, 1).getDay()
+const currentDate = ref(new Date())
+
+const year = computed(() => currentDate.value.getFullYear())
+const month = computed(() => currentDate.value.getMonth())
+const daysInMonth = computed(() => new Date(year.value, month.value + 1, 0).getDate())
+const firstDayOfWeek = computed(() => new Date(year.value, month.value, 1).getDay())
 
 const weekDays = ['一', '二', '三', '四', '五', '六', '日']
 
@@ -63,14 +66,14 @@ const calendarData = computed(() => {
   const maxAmount = Math.max(1, ...Object.values(dailyMap))
 
   const cells = []
-  const startPadding = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1
+  const startPadding = firstDayOfWeek.value === 0 ? 6 : firstDayOfWeek.value - 1
 
   for (let i = 0; i < startPadding; i++) {
     cells.push(null)
   }
 
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  for (let d = 1; d <= daysInMonth.value; d++) {
+    const dateStr = `${year.value}-${String(month.value + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
     const amount = dailyMap[dateStr] || 0
     const intensity = amount > 0 ? Math.max(0.08, amount / maxAmount) : 0
     cells.push({ day: d, date: dateStr, amount, intensity })
@@ -84,20 +87,20 @@ const calendarData = computed(() => {
   return { weeks, maxAmount }
 })
 
-// 初始化数据
+//初始化数据
 onMounted(async () => {
   if (!userId.value) return
   await Promise.all([fetchDayStats(), fetchMonthBills(), loadRecentBills()])
 })
 
-// 选中日期变化时重新拉取当日统计
+//选中日期变化时重新拉取当日统计
 watch(selectedDate, () => {
   if (userId.value) {
     fetchDayStats()
   }
 })
 
-/** 拉取选中日期的收支统计 */
+//拉取选中日期的收支统计数据
 async function fetchDayStats() {
   loadingDay.value = true
   try {
@@ -122,12 +125,12 @@ async function fetchDayStats() {
   }
 }
 
-/** 拉取当前整月的账单用于日历热力图 */
+//拉取选中月份的账单数据
 async function fetchMonthBills() {
   loadingMonth.value = true
   try {
-    const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`
-    const endDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`
+    const startDate = `${year.value}-${String(month.value + 1).padStart(2, '0')}-01`
+    const endDate = `${year.value}-${String(month.value + 1).padStart(2, '0')}-${String(daysInMonth.value).padStart(2, '0')}`
     monthBills.value = await getStats({ userId: userId.value, startDate, endDate })
   } catch {
     monthBills.value = []
@@ -136,7 +139,7 @@ async function fetchMonthBills() {
   }
 }
 
-/** 拉取最近 5 条账单 */
+//拉取最近5条账单数据
 async function loadRecentBills() {
   loadingBills.value = true
   try {
@@ -148,7 +151,19 @@ async function loadRecentBills() {
   }
 }
 
-// 分类名称 → 图标映射
+function prevMonth() {
+  currentDate.value = new Date(year.value, month.value - 1, 1)
+  selectedDate.value = ''
+  fetchMonthBills()
+}
+
+function nextMonth() {
+  currentDate.value = new Date(year.value, month.value + 1, 1)
+  selectedDate.value = ''
+  fetchMonthBills()
+}
+
+//图标映射
 const iconMap = {
   '餐饮': Food,
   '交通': Van,
@@ -169,7 +184,7 @@ function getCategoryIcon(categoryName) {
   return iconMap[categoryName] || Wallet
 }
 
-/** 根据当前小时返回问候语 */
+//根据当前小时获取欢迎问候
 function getGreeting() {
   const hour = new Date().getHours()
   if (hour < 6) return '夜深了'
@@ -180,7 +195,7 @@ function getGreeting() {
   return '晚上好'
 }
 
-/** 根据支出强度计算格子颜色 */
+//根据支出强度计算格子颜色
 function cellColor(intensity) {
   if (intensity <= 0) return 'var(--color-bg-tertiary)'
   const r = 239
@@ -251,12 +266,20 @@ function isSelectedDate(dateStr) {
     <div class="dashboard-grid">
       <div class="section-card calendar-section">
         <div class="section-header">
-          <h3 class="section-title">
-            {{ month + 1 }}月消费热力图
-            <span v-if="selectedDate !== today" class="selected-date-tag">
-              {{ selectedDate }}
-            </span>
-          </h3>
+          <div class="section-title-row">
+            <button class="month-nav-btn" @click="prevMonth">
+              <el-icon :size="14"><ArrowLeft /></el-icon>
+            </button>
+            <h3 class="section-title">
+              {{ year }}年{{ month + 1 }}月消费热力图
+              <span v-if="selectedDate && selectedDate !== today" class="selected-date-tag">
+                {{ selectedDate }}
+              </span>
+            </h3>
+            <button class="month-nav-btn" @click="nextMonth">
+              <el-icon :size="14"><ArrowRight /></el-icon>
+            </button>
+          </div>
           <div class="calendar-legend">
             <span class="legend-label">少</span>
             <span class="legend-cell" style="background: var(--color-bg-tertiary)"></span>
@@ -399,6 +422,32 @@ function isSelectedDate(dateStr) {
   margin-bottom: var(--spacing-md);
 }
 
+.section-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.month-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-card);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    background: var(--color-bg-hover);
+    color: var(--color-text-primary);
+    border-color: var(--color-brand);
+  }
+}
+
 .section-title {
   font-size: var(--font-size-md);
   font-weight: 600;
@@ -478,13 +527,17 @@ function isSelectedDate(dateStr) {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform var(--transition-fast);
   position: relative;
+  transition: all 0.15s;
 
-  &:hover {
+  &.empty {
+    background: transparent;
+    cursor: default;
+  }
+
+  &:not(.empty):hover {
     transform: scale(1.15);
     z-index: 1;
-    box-shadow: var(--shadow-md);
   }
 
   &.is-today {
@@ -492,21 +545,16 @@ function isSelectedDate(dateStr) {
   }
 
   &.is-selected {
+    box-shadow: 0 0 0 2px var(--color-brand);
     z-index: 1;
-    box-shadow: 0 0 0 2px var(--color-brand), 0 0 0 4px rgba(99, 102, 241, 0.3);
-    transform: scale(1.08);
-  }
-
-  &.empty {
-    background: transparent;
-    cursor: default;
+    transform: scale(1.1);
   }
 }
 
 .cell-day {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   pointer-events: none;
 }
 
@@ -514,45 +562,41 @@ function isSelectedDate(dateStr) {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 200px;
+  padding: var(--spacing-3xl);
   color: var(--color-text-tertiary);
-}
-
-.recent-section {
-  display: flex;
-  flex-direction: column;
 }
 
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  flex: 1;
   gap: var(--spacing-md);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  padding: var(--spacing-2xl);
+  color: var(--color-text-tertiary);
+}
+
+.recent-section {
+  .section-header {
+    margin-bottom: var(--spacing-md);
+  }
 }
 
 .recent-list {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .recent-item {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  padding: var(--spacing-md) 0;
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--spacing-sm) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  transition: background 0.15s;
 
-  &:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-
-  &:first-child {
-    padding-top: 0;
+  &:hover {
+    background: var(--color-bg-hover);
   }
 }
 
@@ -589,19 +633,24 @@ function isSelectedDate(dateStr) {
 }
 
 .recent-right {
-  text-align: right;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
   gap: 2px;
+  flex-shrink: 0;
 }
 
 .recent-amount {
   font-size: var(--font-size-sm);
   font-weight: 600;
 
-  &.income { color: var(--color-income); }
-  &.expense { color: var(--color-expense); }
+  &.expense {
+    color: var(--color-expense);
+  }
+
+  &.income {
+    color: var(--color-income);
+  }
 }
 
 .recent-date {

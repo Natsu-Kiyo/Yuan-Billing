@@ -107,8 +107,7 @@ async function handleFileChange(e) {
 async function handleCropped(croppedFile) {
   uploading.value = true
   try {
-    const timestamp = Date.now()
-    const filePath = `${userId.value}/avatar_${timestamp}.png`
+    const filePath = `${userId.value}/avatar.png`
 
     const { error: uploadError } = await supabase.storage
       .from('avatars')
@@ -120,7 +119,8 @@ async function handleCropped(croppedFile) {
       .from('avatars')
       .getPublicUrl(filePath)
 
-    await updateProfile({ avatar_url: urlData.publicUrl })
+    const cacheBustedUrl = `${urlData.publicUrl}?v=${Date.now()}`
+    await updateProfile({ avatar_url: cacheBustedUrl })
     ElMessage.success('头像上传成功')
   } catch (err) {
     ElMessage.error(err.message || '上传失败')

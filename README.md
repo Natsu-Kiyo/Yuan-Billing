@@ -8,7 +8,7 @@
 |------|------|
 | 前端框架 | Vue 3 + Vite |
 | 状态管理 | Pinia |
-| 路由 | Vue Router 4 |
+| 路由 | Vue Router 5 |
 | UI 组件库 | Element Plus |
 | 图表 | ECharts + vue-echarts |
 | CSS 预处理 | Less |

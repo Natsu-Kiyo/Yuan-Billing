@@ -70,6 +70,9 @@ async function confirmDelete() {
 
   try {
     await removeBill(deleteTarget.value.id)
+    if (userId.value) {
+      await fetchBills(userId.value)
+    }
     ElMessage.success('账单已删除')
     deleteVisible.value = false
     deleteTarget.value = null

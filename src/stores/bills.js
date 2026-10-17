@@ -91,10 +91,20 @@ export const useBillsStore = defineStore('bills', () => {
     return result
   }
 
-  /** 删除账单并从本地列表中移除 */
+  /** 删除账单并从本地列表中移除，同时同步分页状态 */
   async function removeBill(id) {
     await apiDeleteBill(id)
+    const beforeCount = bills.value.length
     bills.value = bills.value.filter((b) => b.id !== id)
+
+    if (bills.value.length !== beforeCount) {
+      pagination.total = Math.max(0, pagination.total - 1)
+    }
+
+    // 删除当前页最后一条时回退一页，避免停留在空白页
+    if (!bills.value.length && pagination.page > 1) {
+      pagination.page -= 1
+    }
   }
 
   /** 更新筛选条件（自动重置到第一页） */

@@ -7,6 +7,7 @@ import { TitleComponent, TooltipComponent, LegendComponent, GridComponent } from
 import { CanvasRenderer } from 'echarts/renderers'
 import VChart from 'vue-echarts'
 import { useChartTheme } from '@/composables/useChartTheme'
+import { THEME_COLORS, withAlpha } from '@/constants/theme'
 
 use([LineChart, TitleComponent, TooltipComponent, LegendComponent, GridComponent, CanvasRenderer])
 
@@ -74,15 +75,15 @@ const option = computed(() => {
         smooth: true,
         symbol: 'circle',
         symbolSize: 6,
-        lineStyle: { color: '#ef4444', width: 2.5 },
-        itemStyle: { color: '#ef4444' },
+        lineStyle: { color: THEME_COLORS.expense, width: 2.5 },
+        itemStyle: { color: THEME_COLORS.expense },
         areaStyle: {
           color: {
             type: 'linear',
             x: 0, y: 0, x2: 0, y2: 1,
             colorStops: [
-              { offset: 0, color: 'rgba(239, 68, 68, 0.15)' },
-              { offset: 1, color: 'rgba(239, 68, 68, 0.01)' },
+              { offset: 0, color: withAlpha(THEME_COLORS.expense, 0.15) },
+              { offset: 1, color: withAlpha(THEME_COLORS.expense, 0.01) },
             ],
           },
         },
@@ -94,15 +95,15 @@ const option = computed(() => {
         smooth: true,
         symbol: 'circle',
         symbolSize: 6,
-        lineStyle: { color: '#22c55e', width: 2.5 },
-        itemStyle: { color: '#22c55e' },
+        lineStyle: { color: THEME_COLORS.income, width: 2.5 },
+        itemStyle: { color: THEME_COLORS.income },
         areaStyle: {
           color: {
             type: 'linear',
             x: 0, y: 0, x2: 0, y2: 1,
             colorStops: [
-              { offset: 0, color: 'rgba(34, 197, 94, 0.15)' },
-              { offset: 1, color: 'rgba(34, 197, 94, 0.01)' },
+              { offset: 0, color: withAlpha(THEME_COLORS.income, 0.15) },
+              { offset: 1, color: withAlpha(THEME_COLORS.income, 0.01) },
             ],
           },
         },

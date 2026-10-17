@@ -4,6 +4,7 @@ import { ref, onMounted, onUnmounted, watch, defineAsyncComponent } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useStatistics } from '@/composables/useStatistics'
 import StatCard from '@/components/chart/StatCard.vue'
+import { THEME_COLORS } from '@/constants/theme'
 
 // 图表组件懒加载，减少首屏体积
 const PieChart = defineAsyncComponent(() => import('@/components/chart/PieChart.vue'))
@@ -115,28 +116,28 @@ function disableEndDate(date) {
         title="总支出"
         :value="totalExpense"
         prefix="¥"
-        color="#ef4444"
+        :color="THEME_COLORS.expense"
         :loading="loading"
       />
       <StatCard
         title="总收入"
         :value="totalIncome"
         prefix="¥"
-        color="#22c55e"
+        :color="THEME_COLORS.income"
         :loading="loading"
       />
       <StatCard
         title="结余"
         :value="balance"
         prefix="¥"
-        color="#6366f1"
+        :color="THEME_COLORS.brand"
         :loading="loading"
       />
       <StatCard
         title="日均支出"
         :value="averageDailyExpense"
         prefix="¥"
-        color="#f59e0b"
+        :color="THEME_COLORS.warning"
         :loading="loading"
       />
     </div>

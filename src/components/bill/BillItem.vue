@@ -1,21 +1,7 @@
 <script setup>
 // 账单卡片组件：根据分类展示图标和配色样式的单条账单
 import { computed } from 'vue'
-import {
-  Food,
-  Van,
-  ShoppingCart,
-  VideoPlay,
-  Reading,
-  House,
-  FirstAidKit,
-  More,
-  Money,
-  Coin,
-  Wallet,
-  Present,
-  MoreFilled,
-} from '@element-plus/icons-vue'
+import { getCategoryIcon, DEFAULT_CATEGORY_COLOR } from '@/constants/bill'
 import { formatAmount, formatDate } from '@/utils/format'
 
 const props = defineProps({
@@ -27,29 +13,12 @@ const props = defineProps({
 
 const emit = defineEmits(['edit', 'delete'])
 
-// 分类名称 → 图标映射表
-const iconMap = {
-  '餐饮': Food,
-  '交通': Van,
-  '购物': ShoppingCart,
-  '娱乐': VideoPlay,
-  '学习': Reading,
-  '住房': House,
-  '医疗': FirstAidKit,
-  '其他支出': More,
-  '工资': Money,
-  '兼职': Coin,
-  '生活费': Wallet,
-  '红包': Present,
-  '其他收入': MoreFilled,
-}
-
 // 使用 computed 跟随 props 更新，编辑账单改分类后无需重建组件即可刷新
-const categoryColor = computed(() => props.bill?.categories?.color || '#6366f1')
+const categoryColor = computed(() => props.bill?.categories?.color || DEFAULT_CATEGORY_COLOR)
 const categoryName = computed(() => props.bill?.categories?.name || '未分类')
 const isExpense = computed(() => props.bill?.type === 'expense')
 // 动态选择与当前分类对应的图标组件
-const iconComponent = computed(() => iconMap[categoryName.value] || Wallet)
+const iconComponent = computed(() => getCategoryIcon(categoryName.value))
 </script>
 
 <template>

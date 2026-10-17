@@ -1,12 +1,14 @@
 <script setup>
 // 统计卡片组件：标题、数值、前缀/后缀、图标、加载态、颜色主题
+import { THEME_COLORS } from '@/constants/theme'
+
 defineProps({
   title: { type: String, required: true },
   value: { type: [String, Number], default: 0 },
   prefix: { type: String, default: '' },
   suffix: { type: String, default: '' },
   icon: { type: Object, default: null },
-  color: { type: String, default: '#6366f1' },
+  color: { type: String, default: THEME_COLORS.brand },
   loading: { type: Boolean, default: false },
 })
 </script>

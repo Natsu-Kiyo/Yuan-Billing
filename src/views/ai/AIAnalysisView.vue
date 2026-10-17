@@ -708,8 +708,8 @@ function formatTime(ts) {
   font-weight: 600;
   color: var(--color-text-primary);
 
-  &.expense { color: #ef4444; }
-  &.income { color: #22c55e; }
+  &.expense { color: var(--color-expense); }
+  &.income { color: var(--color-income); }
 }
 
 .top-categories {

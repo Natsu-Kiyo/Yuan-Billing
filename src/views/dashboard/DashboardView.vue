@@ -7,26 +7,9 @@ import { useBills } from '@/composables/useBills'
 import { formatAmount, formatDate, getToday } from '@/utils/format'
 import { getStats } from '@/api/bills'
 import StatCard from '@/components/chart/StatCard.vue'
-import {
-  Top,
-  Bottom,
-  Wallet,
-  Tickets,
-  Food,
-  Van,
-  ShoppingCart,
-  VideoPlay,
-  Reading,
-  House,
-  FirstAidKit,
-  More,
-  Money,
-  Coin,
-  Present,
-  MoreFilled,
-  ArrowLeft,
-  ArrowRight,
-} from '@element-plus/icons-vue'
+import { getCategoryIcon, DEFAULT_CATEGORY_COLOR } from '@/constants/bill'
+import { THEME_COLORS } from '@/constants/theme'
+import { Top, Bottom, Wallet, Tickets, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const { userId, profile } = useAuth()
@@ -176,27 +159,6 @@ function nextMonth() {
   goToMonth(1)
 }
 
-//图标映射
-const iconMap = {
-  '餐饮': Food,
-  '交通': Van,
-  '购物': ShoppingCart,
-  '娱乐': VideoPlay,
-  '学习': Reading,
-  '住房': House,
-  '医疗': FirstAidKit,
-  '其他支出': More,
-  '工资': Money,
-  '兼职': Coin,
-  '生活费': Wallet,
-  '红包': Present,
-  '其他收入': MoreFilled,
-}
-
-function getCategoryIcon(categoryName) {
-  return iconMap[categoryName] || Wallet
-}
-
 //根据当前小时获取欢迎问候
 function getGreeting() {
   const hour = new Date().getHours()
@@ -247,7 +209,7 @@ function isSelectedDate(dateStr) {
         :value="dayStats.expense"
         prefix="¥"
         :icon="Top"
-        color="#ef4444"
+        :color="THEME_COLORS.expense"
         :loading="loadingDay"
       />
       <StatCard
@@ -255,7 +217,7 @@ function isSelectedDate(dateStr) {
         :value="dayStats.income"
         prefix="¥"
         :icon="Bottom"
-        color="#22c55e"
+        :color="THEME_COLORS.income"
         :loading="loadingDay"
       />
       <StatCard
@@ -263,7 +225,7 @@ function isSelectedDate(dateStr) {
         :value="dayStats.balance"
         prefix="¥"
         :icon="Wallet"
-        color="#6366f1"
+        :color="THEME_COLORS.brand"
         :loading="loadingDay"
       />
       <StatCard
@@ -271,7 +233,7 @@ function isSelectedDate(dateStr) {
         :value="dayStats.count"
         suffix=" 笔"
         :icon="Tickets"
-        color="#f59e0b"
+        :color="THEME_COLORS.warning"
         :loading="loadingDay"
       />
     </div>
@@ -369,7 +331,7 @@ function isSelectedDate(dateStr) {
           >
             <div
               class="recent-icon"
-              :style="{ background: bill.categories?.color || '#6366f1' }"
+              :style="{ background: bill.categories?.color || DEFAULT_CATEGORY_COLOR }"
             >
               <el-icon :size="16" color="#fff">
                 <component :is="getCategoryIcon(bill.categories?.name)" />

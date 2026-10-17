@@ -1,7 +1,8 @@
-// AI 分析 API：智谱 GLM-4.7-Flash 模型流式调用（聊天 + 生成报告）
-// 经 dev server / Netlify 代理转发，避免浏览器 CORS 限制
-const API_BASE = import.meta.env.VITE_AI_API_BASE || '/zhipu/api/paas/v4'
-const API_KEY = import.meta.env.VITE_ZHIPU_API_KEY
+// AI 分析 API：经 Netlify Function 代理调用智谱 GLM-4.7-Flash（聊天 + 生成报告）
+// 智谱密钥只在服务端，前端仅携带 Supabase 访问令牌
+import { supabase } from './supabase'
+
+const API_BASE = import.meta.env.VITE_AI_API_BASE || '/.netlify/functions/ai'
 const MODEL = 'glm-4.7-flash'
 
 /** 将统计数据构建为结构化文本上下文 */
@@ -72,8 +73,19 @@ function buildReportPrompt(stats) {
 
 /** 通用 SSE 流式请求处理 */
 async function streamChat({ messages, stats, systemPrompt, onChunk, onDone, onError }) {
-  if (!API_KEY) {
-    onError(new Error('请先在 .env 文件中配置 VITE_ZHIPU_API_KEY'))
+  let token = ''
+
+  try {
+    const { data, error } = await supabase.auth.getSession()
+    if (error) throw error
+    token = data.session?.access_token || ''
+  } catch (err) {
+    onError(err instanceof Error ? err : new Error('获取登录状态失败'))
+    return
+  }
+
+  if (!token) {
+    onError(new Error('登录状态已失效，请重新登录'))
     return
   }
 
@@ -97,7 +109,7 @@ async function streamChat({ messages, stats, systemPrompt, onChunk, onDone, onEr
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`,
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(body),
     })

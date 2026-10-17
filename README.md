@@ -76,7 +76,9 @@ npm install
 ```env
 VITE_SUPABASE_URL=你的Supabase项目URL
 VITE_SUPABASE_ANON_KEY=你的Supabase匿名密钥
-VITE_ZHIPU_API_KEY=你的智谱AI API密钥
+
+# 仅供 Netlify Function 使用，不要加 VITE_ 前缀
+ZHIPU_API_KEY=你的智谱AI API密钥
 ```
 
 ### 启动开发服务器
@@ -103,7 +105,7 @@ npm run preview
 
 1. 将项目推送到 GitHub
 2. 在 Netlify 中导入该仓库
-3. 在 Netlify 环境变量中配置 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY`、`VITE_ZHIPU_API_KEY`
+3. 在 Netlify 环境变量中配置 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY`、`ZHIPU_API_KEY`
 4. 在 Supabase Authentication → URL Configuration 中添加 Netlify 域名
 
 ## 数据库

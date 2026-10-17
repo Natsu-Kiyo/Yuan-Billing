@@ -3,13 +3,6 @@
   publish = "dist"
   node_version = "20"
 
-# 代理智谱 AI 接口，避免浏览器直连的 CORS 限制
-[[redirects]]
-  from = "/zhipu/*"
-  to = "https://open.bigmodel.cn/:splat"
-  status = 200
-  force = true
-
 [[redirects]]
   from = "/*"
   to = "/index.html"

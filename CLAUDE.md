@@ -57,7 +57,9 @@ All authenticated routes are children of `AppLayout.vue` (sidebar + navbar shell
 
 ### AI streaming
 
-`src/api/ai.js` calls 智谱 AI's SSE endpoint directly via `fetch`, reading the response body as a `ReadableStream` reader. It parses SSE `data:` lines and calls `onChunk` callbacks. The `useAIStore` manages message history and streaming state, appending chunks into `streamingContent` (rendered in real-time by the view), then moving the completed message into `messages[]` on `onDone`.
+`src/api/ai.js` posts to `/.netlify/functions/ai` with the Supabase access token. `netlify/functions/ai.js` validates that token against Supabase, injects the server-only `ZHIPU_API_KEY`, and streams 智谱 AI's SSE response straight through. The client reads the response body as a `ReadableStream` reader, parses SSE `data:` lines and calls `onChunk` callbacks. The `useAIStore` manages message history and streaming state, appending chunks into `streamingContent` (rendered in real-time by the view), then moving the completed message into `messages[]` on `onDone`.
+
+Local dev does not need `netlify dev`: a small Vite plugin (`netlifyFunctionsDev` in `vite.config.js`) mounts `/.netlify/functions/*` and invokes the handler in-process, so local and production share the same server-side path.
 
 ### Element Plus auto-import
 
@@ -69,4 +71,4 @@ All authenticated routes are children of `AppLayout.vue` (sidebar + navbar shell
 
 ### Environment variables
 
-Required: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ZHIPU_API_KEY`. Defined in `.env` (gitignored), with a template in `.env.example`.
+Required: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `ZHIPU_API_KEY`. `ZHIPU_API_KEY` is server-only (no `VITE_` prefix) and must never be referenced from `src/`, otherwise Vite inlines it into the public bundle. Defined in `.env` (gitignored), with a template in `.env.example`.

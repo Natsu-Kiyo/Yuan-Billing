@@ -35,6 +35,8 @@ function pad2(value) {
  * YYYY-MM-DD 字符串直接截取，避免 new Date 按 UTC 解析导致时区偏移（差一天）
  */
 function parseDateParts(value) {
+  if (!value) return null
+
   if (typeof value === 'string') {
     const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/)
     if (match) {

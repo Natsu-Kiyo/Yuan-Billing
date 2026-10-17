@@ -56,12 +56,32 @@ watch(
   }
 )
 
-/** 将 Markdown 渲染为安全的 HTML */
-function renderMarkdown(content) {
-  const cleaned = (content || '').replace(/\n{2,}/g, '\n')
+// 已完成消息的渲染结果按内容缓存，避免流式输出时反复解析整段历史
+const markdownCache = new Map()
+const MARKDOWN_CACHE_LIMIT = 200
+
+/**
+ * 将 Markdown 渲染为安全的 HTML
+ * @param {string} content Markdown 原文
+ * @param {boolean} cacheable 内容是否不再变化（完成消息可缓存，流式片段不缓存）
+ */
+function renderMarkdown(content, cacheable = false) {
+  const raw = content || ''
+
+  if (cacheable && markdownCache.has(raw)) {
+    return markdownCache.get(raw)
+  }
+
+  const cleaned = raw.replace(/\n{2,}/g, '\n')
   let html = md.render(cleaned)
   html = html.replace(/<p>\s*<\/p>/g, '')
   html = html.replace(/(<br\s*\/?>\s*){2,}/g, '<br>')
+
+  if (cacheable) {
+    if (markdownCache.size >= MARKDOWN_CACHE_LIMIT) markdownCache.clear()
+    markdownCache.set(raw, html)
+  }
+
   return html
 }
 
@@ -171,7 +191,7 @@ function formatTime(ts) {
                 <div
                   v-if="msg.role === 'assistant'"
                   class="message-content markdown-body"
-                  v-html="renderMarkdown(msg.content)"
+                  v-html="renderMarkdown(msg.content, true)"
                 ></div>
                 <div v-else class="message-content">{{ msg.content }}</div>
               </div>

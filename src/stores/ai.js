@@ -3,6 +3,22 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { sendMessageStream, generateReportStream } from '@/api/ai'
 
+// 每次请求最多携带的历史消息条数，避免上下文无限增长
+const MAX_HISTORY_MESSAGES = 20
+
+/** 取最近若干条消息作为上下文，并保证以用户消息开头 */
+function buildHistory(list) {
+  const recent = list
+    .filter((m) => !m._streaming)
+    .slice(-MAX_HISTORY_MESSAGES)
+
+  while (recent.length && recent[0].role !== 'user') {
+    recent.shift()
+  }
+
+  return recent.map((m) => ({ role: m.role, content: m.content }))
+}
+
 export const useAIStore = defineStore('ai', () => {
   const messages = ref([])          // 对话历史
   const loading = ref(false)        // 请求进行中
@@ -53,9 +69,7 @@ export const useAIStore = defineStore('ai', () => {
     startStreaming()
 
     await sendMessageStream({
-      messages: messages.value
-        .filter((m) => !m._streaming)
-        .map((m) => ({ role: m.role, content: m.content })),
+      messages: buildHistory(messages.value),
       stats,
       onChunk: appendStreamChunk,
       onDone: () => {

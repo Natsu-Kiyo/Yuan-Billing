@@ -26,23 +26,42 @@ export function sanitizeAmount(raw) {
   return val.replace(/^0+(?=\d)/, '')
 }
 
-/** 日期字符串格式化为 YYYY-MM-DD */
-export function formatDate(dateStr) {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+function pad2(value) {
+  return String(value).padStart(2, '0')
 }
 
-/** 日期字符串格式化为 MM/DD（短格式） */
+/**
+ * 解析日期为年/月/日三部分
+ * YYYY-MM-DD 字符串直接截取，避免 new Date 按 UTC 解析导致时区偏移（差一天）
+ */
+function parseDateParts(value) {
+  if (typeof value === 'string') {
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/)
+    if (match) {
+      return { year: match[1], month: match[2], day: match[3] }
+    }
+  }
+
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+
+  return {
+    year: String(date.getFullYear()),
+    month: pad2(date.getMonth() + 1),
+    day: pad2(date.getDate()),
+  }
+}
+
+/** 日期格式化为 YYYY-MM-DD */
+export function formatDate(dateStr) {
+  const parts = parseDateParts(dateStr)
+  return parts ? `${parts.year}-${parts.month}-${parts.day}` : ''
+}
+
+/** 日期格式化为 MM/DD（短格式） */
 export function formatDateShort(dateStr) {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${month}/${day}`
+  const parts = parseDateParts(dateStr)
+  return parts ? `${parts.month}/${parts.day}` : ''
 }
 
 /** 获取当前月份的起止日期范围 */

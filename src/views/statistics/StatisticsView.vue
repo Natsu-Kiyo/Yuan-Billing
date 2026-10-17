@@ -1,6 +1,6 @@
 <script setup>
 // 统计分析页：日期范围筛选、收支概览、分类饼图、月度趋势图
-import { ref, onMounted, watch, defineAsyncComponent } from 'vue'
+import { ref, onMounted, onUnmounted, watch, defineAsyncComponent } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useStatistics } from '@/composables/useStatistics'
 import StatCard from '@/components/chart/StatCard.vue'
@@ -45,10 +45,9 @@ watch(
   { immediate: true }
 )
 
-/** 日期范围变化时防抖拉取统计 */
+/** 日期范围变化时防抖拉取统计（清空日期同样需要刷新回全量数据） */
 function handleDateChange() {
   setDateRange(startDateValue.value, endDateValue.value)
-  if (!startDateValue.value || !endDateValue.value) return
   if (debounceTimer) clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => {
     if (userId.value) {
@@ -56,6 +55,14 @@ function handleDateChange() {
     }
   }, 300)
 }
+
+// 页面卸载时清理防抖定时器，避免卸载后仍发起请求
+onUnmounted(() => {
+  if (debounceTimer) {
+    clearTimeout(debounceTimer)
+    debounceTimer = null
+  }
+})
 
 /** 禁用结束日期之后的所有日期（用于开始日期选择器） */
 function disableStartDate(date) {

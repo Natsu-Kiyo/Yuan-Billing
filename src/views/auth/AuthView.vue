@@ -82,6 +82,15 @@ const rules = computed(() => (mode.value === 'register' ? registerRules : loginR
 
 const isLogin = computed(() => mode.value === 'login')
 
+/** 登录后的回跳地址：仅允许站内路径，防止开放重定向 */
+function resolveRedirect() {
+  const redirect = route.query.redirect
+  if (typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//')) {
+    return redirect
+  }
+  return '/dashboard'
+}
+
 /** 登录 */
 async function handleLogin() {
   if (!formRef.value) return
@@ -89,7 +98,7 @@ async function handleLogin() {
     await formRef.value.validate()
     await login({ email: form.email, password: form.password })
     ElMessage.success('登录成功')
-    router.push('/dashboard')
+    router.push(resolveRedirect())
   } catch (err) {
     if (err?.message) {
       ElMessage.error(err.message)

@@ -44,11 +44,12 @@ const iconMap = {
   '其他收入': MoreFilled,
 }
 
-const categoryColor = props.bill?.categories?.color || '#6366f1'
-const categoryName = props.bill?.categories?.name || '未分类'
-const isExpense = props.bill?.type === 'expense'
+// 使用 computed 跟随 props 更新，编辑账单改分类后无需重建组件即可刷新
+const categoryColor = computed(() => props.bill?.categories?.color || '#6366f1')
+const categoryName = computed(() => props.bill?.categories?.name || '未分类')
+const isExpense = computed(() => props.bill?.type === 'expense')
 // 动态选择与当前分类对应的图标组件
-const iconComponent = computed(() => iconMap[categoryName] || Wallet)
+const iconComponent = computed(() => iconMap[categoryName.value] || Wallet)
 </script>
 
 <template>

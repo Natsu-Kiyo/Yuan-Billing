@@ -40,6 +40,26 @@ const currentCategories = computed(() =>
   form.type === 'expense' ? expenseCategories.value : incomeCategories.value
 )
 
+/**
+ * 金额输入过滤：仅保留数字与最多一个小数点，且小数最多两位
+ * 例如 "-e+" -> ""，"1.2.3" -> "1.23"，"12.345" -> "12.34"
+ */
+function sanitizeAmount(raw) {
+  let val = String(raw ?? '').replace(/[^\d.]/g, '')
+
+  const dotIndex = val.indexOf('.')
+  if (dotIndex !== -1) {
+    val =
+      val.slice(0, dotIndex + 1) +
+      val.slice(dotIndex + 1).replace(/\./g, '')
+    const [intPart, decPart] = val.split('.')
+    val = `${intPart}.${decPart.slice(0, 2)}`
+  }
+
+  // 去掉多余的前导 0（保留 "0.xx" 中的 0）
+  return val.replace(/^0+(?=\d)/, '')
+}
+
 // 自定义金额校验规则
 const validateAmount = (_rule, value, callback) => {
   const num = parseFloat(value)
@@ -170,9 +190,10 @@ function handleClose() {
         <el-input
           v-model="form.amount"
           placeholder="请输入金额"
-          type="number"
-          :min="0"
+          inputmode="decimal"
           size="large"
+          :formatter="sanitizeAmount"
+          :parser="sanitizeAmount"
         >
           <template #prefix>
             <span class="amount-prefix">¥</span>

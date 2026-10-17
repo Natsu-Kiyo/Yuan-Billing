@@ -1,74 +1,17 @@
-// 统计 API：聚合账单原始数据为图表可用的结构化统计数据
-import { getStats as apiGetStats } from './bills'
+// 统计 API：调用数据库函数聚合，避免把全部账单拉到前端
+import { supabase } from './supabase'
 
-/** 
+/**
  * 获取并聚合统计数据
- * 返回：总收支、分类汇总（支出/收入）、月度趋势、账单总数
+ * 返回：总收支、分类汇总（支出/收入）、月度趋势、账单数、实际数据区间
+ * @param {{ startDate?: string|null, endDate?: string|null }} range
  */
-export async function fetchStats({ userId, startDate, endDate }) {
-  const rawData = await apiGetStats({ userId, startDate, endDate })
-
-  const expenseByCategory = {}
-  const incomeByCategory = {}
-  const monthlyMap = {}
-  let totalExpense = 0
-  let totalIncome = 0
-  // 记录账单实际覆盖的日期区间，用于在未选择时间范围时计算日均支出
-  let dataStartDate = null
-  let dataEndDate = null
-
-  rawData.forEach((item) => {
-    const amount = Number(item.amount)
-    const month = item.bill_date?.substring(0, 7) // 提取 YYYY-MM
-    const catName = item.categories?.name || '未分类'
-    const catColor = item.categories?.color || '#6366f1'
-
-    if (month) {
-      if (!dataStartDate || item.bill_date < dataStartDate) dataStartDate = item.bill_date
-      if (!dataEndDate || item.bill_date > dataEndDate) dataEndDate = item.bill_date
-    }
-
-    if (item.type === 'expense') {
-      totalExpense += amount
-      if (!expenseByCategory[catName]) {
-        expenseByCategory[catName] = { name: catName, value: 0, color: catColor }
-      }
-      expenseByCategory[catName].value += amount
-    } else {
-      totalIncome += amount
-      if (!incomeByCategory[catName]) {
-        incomeByCategory[catName] = { name: catName, value: 0, color: catColor }
-      }
-      incomeByCategory[catName].value += amount
-    }
-
-    // 按月度累计收支
-    if (month) {
-      if (!monthlyMap[month]) {
-        monthlyMap[month] = { month, expense: 0, income: 0 }
-      }
-      if (item.type === 'expense') {
-        monthlyMap[month].expense += amount
-      } else {
-        monthlyMap[month].income += amount
-      }
-    }
+export async function fetchStats({ startDate = null, endDate = null } = {}) {
+  const { data, error } = await supabase.rpc('get_bill_stats', {
+    p_start_date: startDate,
+    p_end_date: endDate,
   })
 
-  // 转换为数组并排序
-  const expenseList = Object.values(expenseByCategory).sort((a, b) => b.value - a.value)
-  const incomeList = Object.values(incomeByCategory).sort((a, b) => b.value - a.value)
-  const monthlyTrend = Object.values(monthlyMap).sort((a, b) => a.month.localeCompare(b.month))
-
-  return {
-    totalExpense,
-    totalIncome,
-    balance: totalIncome - totalExpense,
-    expenseByCategory: expenseList,
-    incomeByCategory: incomeList,
-    monthlyTrend,
-    billCount: rawData.length,
-    dataStartDate,
-    dataEndDate,
-  }
+  if (error) throw error
+  return data
 }

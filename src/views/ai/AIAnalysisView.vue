@@ -38,7 +38,7 @@ const quickQuestions = [
 onMounted(async () => {
   if (!userId.value) return
   try {
-    await fetchStats(userId.value)
+    await fetchStats()
   } catch (err) {
     ElMessage.error(err.message || '加载财务数据失败')
   }

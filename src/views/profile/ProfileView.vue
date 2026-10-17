@@ -28,7 +28,7 @@ const pendingFile = ref(null)
 onMounted(async () => {
   if (!userId.value) return
   try {
-    await fetchStats(userId.value)
+    await fetchStats()
   } catch (err) {
     ElMessage.error(err.message || '加载统计数据失败')
   }

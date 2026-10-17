@@ -33,7 +33,7 @@ let debounceTimer = null
 onMounted(async () => {
   if (!userId.value) return
   try {
-    await fetchStats(userId.value)
+    await fetchStats()
   } catch (err) {
     ElMessage.error(err.message || '加载统计数据失败')
   }
@@ -55,7 +55,7 @@ function handleDateChange() {
   if (debounceTimer) clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => {
     if (userId.value) {
-      fetchStats(userId.value)
+      fetchStats()
     }
   }, 300)
 }

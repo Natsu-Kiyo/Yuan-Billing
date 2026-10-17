@@ -47,14 +47,13 @@ export const useStatisticsStore = defineStore('statistics', () => {
     return totalExpense.value / days
   })
 
-  /** 拉取并聚合统计数据 */
-  async function fetchStats(userId) {
+  /** 拉取并聚合统计数据（用户身份由数据库按登录态判定） */
+  async function fetchStats() {
     loading.value = true
     error.value = null
 
     try {
       const data = await apiFetchStats({
-        userId,
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
       })

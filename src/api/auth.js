@@ -57,29 +57,40 @@ export async function getUser() {
   return data.user
 }
 
-/** 根据 userId 查询 profiles 表获取用户资料 */
+/** 根据 userId 查询 profiles 表获取用户资料（资料缺失时返回 null，不影响登录） */
 export async function getProfile(userId) {
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', userId)
-    .single()
+    .maybeSingle()
 
   if (error) throw error
   return data
 }
 
-/** 更新指定用户的 profiles 表记录 */
+/** 更新指定用户的 profiles 表记录，资料行缺失时自动补建 */
 export async function updateProfile(userId, updates) {
+  const payload = { ...updates, updated_at: new Date().toISOString() }
+
   const { data, error } = await supabase
     .from('profiles')
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(payload)
     .eq('id', userId)
     .select()
-    .single()
+    .maybeSingle()
 
   if (error) throw error
-  return data
+  if (data) return data
+
+  const { data: created, error: insertError } = await supabase
+    .from('profiles')
+    .insert({ id: userId, ...payload })
+    .select()
+    .maybeSingle()
+
+  if (insertError) throw insertError
+  return created
 }
 
 /** 监听认证状态变化（登录/登出/Token 刷新） */

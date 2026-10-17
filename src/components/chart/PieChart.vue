@@ -1,11 +1,10 @@
 <script setup>
 // 饼图组件（ECharts 环形图）：分类占比展示，支持 ResizeObserver 自适应
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import { use } from 'echarts/core'
 import { PieChart } from 'echarts/charts'
 import { TitleComponent, TooltipComponent, LegendComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
-import { getInstanceByDom } from 'echarts'
 import VChart from 'vue-echarts'
 import { useChartTheme } from '@/composables/useChartTheme'
 
@@ -18,32 +17,6 @@ const props = defineProps({
 })
 
 const { bgCard, borderColor, textPrimary, textSecondary } = useChartTheme()
-
-const wrapperRef = ref(null)
-let resizeObserver = null
-
-// 容器尺寸变化时手动触发 ECharts resize，解决 CSS 过渡导致的尺寸不准确问题
-onMounted(() => {
-  if (wrapperRef.value) {
-    resizeObserver = new ResizeObserver(() => {
-      const divs = wrapperRef.value.querySelectorAll('div')
-      divs.forEach((el) => {
-        const instance = getInstanceByDom(el)
-        if (instance) {
-          instance.resize()
-        }
-      })
-    })
-    resizeObserver.observe(wrapperRef.value)
-  }
-})
-
-onUnmounted(() => {
-  if (resizeObserver) {
-    resizeObserver.disconnect()
-    resizeObserver = null
-  }
-})
 
 const option = computed(() => ({
   tooltip: {
@@ -90,7 +63,7 @@ const option = computed(() => ({
 </script>
 
 <template>
-  <div ref="wrapperRef" class="pie-chart-wrapper">
+  <div class="pie-chart-wrapper">
     <v-chart v-if="data.length" :option="option" :style="{ height }" autoresize />
     <div v-else class="chart-empty">暂无数据</div>
   </div>

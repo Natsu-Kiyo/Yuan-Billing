@@ -1,11 +1,10 @@
 <script setup>
 // 柱状图组件（ECharts）：分类金额对比，带圆角柱体，支持 ResizeObserver 自适应
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import { use } from 'echarts/core'
 import { BarChart } from 'echarts/charts'
 import { TitleComponent, TooltipComponent, LegendComponent, GridComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
-import { getInstanceByDom } from 'echarts'
 import VChart from 'vue-echarts'
 import { useChartTheme } from '@/composables/useChartTheme'
 
@@ -18,32 +17,6 @@ const props = defineProps({
 })
 
 const { bgCard, borderColor, textPrimary, textSecondary } = useChartTheme()
-
-const wrapperRef = ref(null)
-let resizeObserver = null
-
-// 容器尺寸变化时手动触发 ECharts resize
-onMounted(() => {
-  if (wrapperRef.value) {
-    resizeObserver = new ResizeObserver(() => {
-      const divs = wrapperRef.value.querySelectorAll('div')
-      divs.forEach((el) => {
-        const instance = getInstanceByDom(el)
-        if (instance) {
-          instance.resize()
-        }
-      })
-    })
-    resizeObserver.observe(wrapperRef.value)
-  }
-})
-
-onUnmounted(() => {
-  if (resizeObserver) {
-    resizeObserver.disconnect()
-    resizeObserver = null
-  }
-})
 
 // 从 data 中提取名称、金额、颜色
 const option = computed(() => {
@@ -111,7 +84,7 @@ const option = computed(() => {
 </script>
 
 <template>
-  <div ref="wrapperRef" class="bar-chart-wrapper">
+  <div class="bar-chart-wrapper">
     <v-chart v-if="data.length" :option="option" :style="{ height }" autoresize />
     <div v-else class="chart-empty">暂无数据</div>
   </div>

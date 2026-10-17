@@ -2,6 +2,7 @@
 // 账单筛选栏：按类型 / 分类 / 日期范围 / 金额区间过滤
 import { ref, computed, watch } from 'vue'
 import { useBills } from '@/composables/useBills'
+import { sanitizeAmount } from '@/utils/format'
 
 const { filters, setFilters, expenseCategories, incomeCategories } = useBills()
 
@@ -39,12 +40,19 @@ watch(
   { immediate: true }
 )
 
+/** 空值或非法输入返回 null，避免把 NaN 传给查询 */
+function toAmountOrNull(value) {
+  if (value === '' || value == null) return null
+  const num = Number(value)
+  return Number.isFinite(num) ? num : null
+}
+
 // 防抖 400ms 后校验金额区间合法性并更新筛选条件
 watch([minAmount, maxAmount], () => {
   if (amountTimer) clearTimeout(amountTimer)
   amountTimer = setTimeout(() => {
-    const min = minAmount.value !== '' && minAmount.value != null ? Number(minAmount.value) : null
-    const max = maxAmount.value !== '' && maxAmount.value != null ? Number(maxAmount.value) : null
+    const min = toAmountOrNull(minAmount.value)
+    const max = toAmountOrNull(maxAmount.value)
 
     if (min != null && max != null && max <= min) {
       amountError.value = '最高金额必须大于最低金额'
@@ -148,10 +156,12 @@ function disableEndDate(date) {
       <el-input
         v-model="minAmount"
         placeholder="最低金额"
-        type="number"
+        inputmode="decimal"
         size="default"
         style="width: 130px"
         clearable
+        :formatter="sanitizeAmount"
+        :parser="sanitizeAmount"
       >
         <template #prefix>¥</template>
       </el-input>
@@ -159,10 +169,12 @@ function disableEndDate(date) {
       <el-input
         v-model="maxAmount"
         placeholder="最高金额"
-        type="number"
+        inputmode="decimal"
         size="default"
         style="width: 130px"
         clearable
+        :formatter="sanitizeAmount"
+        :parser="sanitizeAmount"
       >
         <template #prefix>¥</template>
       </el-input>

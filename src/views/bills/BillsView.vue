@@ -1,6 +1,6 @@
 <script setup>
 // 账单列表页：筛选、分页、增删改、CSV 导入导出
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useBills } from '@/composables/useBills'
 import { useCategoriesStore } from '@/stores/categories'
@@ -33,8 +33,41 @@ const importing = ref(false)
 const fileInput = ref(null)
 const listCardRef = ref(null)
 
+// 移动端：筛选区默认折叠，避免挤占账单列表空间
+const isMobile = ref(typeof window !== 'undefined' && window.innerWidth <= 768)
+const filtersOpen = ref(false)
+
+function updateViewport() {
+  isMobile.value = window.innerWidth <= 768
+}
+
+const filterSummary = computed(() => {
+  const parts = []
+
+  const typeLabel = { all: '全部类型', expense: '支出', income: '收入' }[filters.value.type]
+  if (typeLabel) parts.push(typeLabel)
+
+  if (filters.value.categoryId) {
+    const category = categoriesStore.categoryMap[filters.value.categoryId]
+    if (category) parts.push(category.name)
+  }
+
+  if (filters.value.startDate || filters.value.endDate) {
+    parts.push(`${filters.value.startDate || '…'} ~ ${filters.value.endDate || '…'}`)
+  }
+
+  if (filters.value.minAmount != null || filters.value.maxAmount != null) {
+    parts.push(`¥${filters.value.minAmount ?? 0} ~ ${filters.value.maxAmount ?? '不限'}`)
+  }
+
+  return parts.join(' · ')
+})
+
 // 初始化：加载分类和账单列表
 onMounted(async () => {
+  updateViewport()
+  window.addEventListener('resize', updateViewport)
+
   if (!userId.value) return
   try {
     await fetchCategories()
@@ -42,6 +75,10 @@ onMounted(async () => {
   } catch (err) {
     ElMessage.error(err.message || '加载账单数据失败')
   }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateViewport)
 })
 
 /** 重新加载账单列表，失败时给出提示 */
@@ -118,8 +155,13 @@ async function handleSizeChange(size) {
 
 /** 翻页或修改每页条数后回到列表顶部 */
 function scrollListToTop() {
-  if (listCardRef.value) {
-    listCardRef.value.scrollTop = 0
+  if (!listCardRef.value) return
+
+  listCardRef.value.scrollTop = 0
+
+  // 移动端列表不内部滚动，改为把列表顶部滚入视口
+  if (window.innerWidth <= 768) {
+    listCardRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 }
 
@@ -379,7 +421,21 @@ async function handleFileChange(e) {
     </div>
 
     <div class="bills-toolbar">
-      <BillFilter />
+      <template v-if="isMobile">
+        <div class="mobile-filter-bar">
+          <el-button
+            :type="filtersOpen ? 'primary' : 'default'"
+            plain
+            @click="filtersOpen = !filtersOpen"
+          >
+            <el-icon :size="14"><el-icon-filter></el-icon-filter></el-icon>
+            {{ filtersOpen ? '收起筛选' : '筛选' }}
+          </el-button>
+          <span class="filter-summary">{{ filterSummary }}</span>
+        </div>
+        <BillFilter v-show="filtersOpen" class="mobile-filter-panel" />
+      </template>
+      <BillFilter v-else />
     </div>
 
     <div ref="listCardRef" class="section-card bill-list-card">
@@ -387,7 +443,9 @@ async function handleFileChange(e) {
     </div>
 
     <div v-if="pagination.total > 0" class="pagination-wrapper">
+      <!-- 桌面端：每页条数与页码同一行 -->
       <el-pagination
+        class="pagination-desktop"
         :current-page="pagination.page"
         :page-size="pagination.pageSize"
         :page-sizes="[10, 20, 50, 100]"
@@ -397,6 +455,27 @@ async function handleFileChange(e) {
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
       />
+
+      <!-- 移动端：分两行，避免宽度溢出 -->
+      <div class="pagination-mobile">
+        <el-pagination
+          :page-size="pagination.pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :total="pagination.total"
+          layout="sizes"
+          background
+          @size-change="handleSizeChange"
+        />
+        <el-pagination
+          :current-page="pagination.page"
+          :page-size="pagination.pageSize"
+          :total="pagination.total"
+          :pager-count="5"
+          layout="prev, pager, next"
+          background
+          @current-change="handlePageChange"
+        />
+      </div>
     </div>
 
     <BillForm
@@ -452,11 +531,33 @@ async function handleFileChange(e) {
   flex-shrink: 0;
 }
 
+.mobile-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+}
+
+.filter-summary {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-filter-panel {
+  width: 100%;
+}
+
 .bill-list-card {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scroll-margin-top: calc(var(--navbar-height) + var(--spacing-md));
 }
 
 .pagination-wrapper {
@@ -464,6 +565,36 @@ async function handleFileChange(e) {
   justify-content: center;
   margin-top: var(--spacing-md);
   flex-shrink: 0;
+}
+
+.pagination-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  // 移动端改为整页自然滚动，账单列表不再被压缩在固定高度里
+  .page-container {
+    height: auto;
+    min-height: calc(100dvh - var(--navbar-height));
+    overflow: visible;
+  }
+
+  .bill-list-card {
+    flex: none;
+    overflow-y: visible;
+  }
+
+  .pagination-desktop {
+    display: none;
+  }
+
+  .pagination-mobile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+    width: 100%;
+  }
 }
 
 @media (max-width: 640px) {

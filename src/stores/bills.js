@@ -48,8 +48,12 @@ export const useBillsStore = defineStore('bills', () => {
 
   const balance = computed(() => totalIncome.value - totalExpense.value)
 
+  // 请求序号：快速切换筛选时只接受最后一次请求的结果
+  let requestSeq = 0
+
   /** 按当前筛选条件和分页参数查询账单 */
   async function fetchBills(userId) {
+    const seq = ++requestSeq
     loading.value = true
     error.value = null
 
@@ -65,13 +69,19 @@ export const useBillsStore = defineStore('bills', () => {
         page: pagination.page,
         pageSize: pagination.pageSize,
       })
+      // 过期响应直接丢弃，避免覆盖最新筛选结果
+      if (seq !== requestSeq) return
+
       bills.value = data
       pagination.total = total
     } catch (err) {
+      if (seq !== requestSeq) return
       error.value = err.message
       throw err
     } finally {
-      loading.value = false
+      if (seq === requestSeq) {
+        loading.value = false
+      }
     }
   }
 

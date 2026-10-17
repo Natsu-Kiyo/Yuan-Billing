@@ -42,14 +42,20 @@ onMounted(async () => {
   }
 })
 
+/** 重新加载账单列表，失败时给出提示 */
+async function loadBills() {
+  if (!userId.value) return
+  try {
+    await fetchBills(userId.value)
+  } catch (err) {
+    ElMessage.error(err.message || '加载账单数据失败')
+  }
+}
+
 // 筛选条件变化自动重新查询
 watch(
   () => [filters.value.type, filters.value.categoryId, filters.value.startDate, filters.value.endDate, filters.value.minAmount, filters.value.maxAmount],
-  () => {
-    if (userId.value) {
-      fetchBills(userId.value)
-    }
-  }
+  loadBills
 )
 
 // --- CRUD 操作 ---
@@ -86,16 +92,12 @@ async function confirmDelete() {
 }
 
 function handleFormSubmit() {
-  if (userId.value) {
-    fetchBills(userId.value)
-  }
+  loadBills()
 }
 
 function handlePageChange(page) {
   setPage(page)
-  if (userId.value) {
-    fetchBills(userId.value)
-  }
+  loadBills()
 }
 
 // --- CSV 导入导出 ---

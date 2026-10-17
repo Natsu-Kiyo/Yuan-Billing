@@ -13,12 +13,20 @@ export async function fetchStats({ userId, startDate, endDate }) {
   const monthlyMap = {}
   let totalExpense = 0
   let totalIncome = 0
+  // 记录账单实际覆盖的日期区间，用于在未选择时间范围时计算日均支出
+  let dataStartDate = null
+  let dataEndDate = null
 
   rawData.forEach((item) => {
     const amount = Number(item.amount)
     const month = item.bill_date?.substring(0, 7) // 提取 YYYY-MM
     const catName = item.categories?.name || '未分类'
     const catColor = item.categories?.color || '#6366f1'
+
+    if (month) {
+      if (!dataStartDate || item.bill_date < dataStartDate) dataStartDate = item.bill_date
+      if (!dataEndDate || item.bill_date > dataEndDate) dataEndDate = item.bill_date
+    }
 
     if (item.type === 'expense') {
       totalExpense += amount
@@ -60,5 +68,7 @@ export async function fetchStats({ userId, startDate, endDate }) {
     incomeByCategory: incomeList,
     monthlyTrend,
     billCount: rawData.length,
+    dataStartDate,
+    dataEndDate,
   }
 }

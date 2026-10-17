@@ -112,6 +112,9 @@ async function fetchDayStats() {
   loadingDay.value = true
   try {
     const data = await getStats({ userId: userId.value, startDate: date, endDate: date })
+    // 请求期间已切换日期或月份时丢弃这次结果
+    if (selectedDate.value !== date) return
+
     let expense = 0
     let income = 0
     data.forEach((b) => {

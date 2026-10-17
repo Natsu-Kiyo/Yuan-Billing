@@ -55,6 +55,17 @@ export async function createBill(data) {
   return result
 }
 
+/** 批量创建账单（CSV 导入使用） */
+export async function createBills(rows) {
+  if (!rows?.length) return
+
+  const { error } = await supabase
+    .from('bills')
+    .insert(rows)
+
+  if (error) throw error
+}
+
 /** 更新指定账单 */
 export async function updateBill(id, data) {
   const { data: result, error } = await supabase

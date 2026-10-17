@@ -4,7 +4,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useBills } from '@/composables/useBills'
 import { useCategoriesStore } from '@/stores/categories'
-import { fetchAllBills, createBill } from '@/api/bills'
+import { fetchAllBills, createBills } from '@/api/bills'
 import BillFilter from '@/components/bill/BillFilter.vue'
 import BillList from '@/components/bill/BillList.vue'
 import BillForm from '@/components/bill/BillForm.vue'
@@ -153,88 +153,170 @@ function handleImportClick() {
   fileInput.value?.click()
 }
 
-/** 解析 CSV 文件并逐行创建账单 */
+/** 解析单行 CSV，支持双引号包裹与 "" 转义 */
+function parseCsvLine(line) {
+  const result = []
+  let current = ''
+  let inQuotes = false
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i]
+
+    if (inQuotes) {
+      if (ch === '"') {
+        if (line[i + 1] === '"') {
+          current += '"'
+          i++
+        } else {
+          inQuotes = false
+        }
+      } else {
+        current += ch
+      }
+    } else if (ch === '"') {
+      inQuotes = true
+    } else if (ch === ',') {
+      result.push(current)
+      current = ''
+    } else {
+      current += ch
+    }
+  }
+
+  result.push(current)
+  return result
+}
+
+/** 校验 YYYY-MM-DD 是否为真实存在的日期 */
+function isValidDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+
+  const [year, month, day] = value.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
+
+  return (
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+  )
+}
+
+const IMPORT_BATCH_SIZE = 200
+
+/** 分批写入账单；整批失败时逐条重试，定位具体失败行 */
+async function insertBillsInBatches(rows) {
+  let success = 0
+  const failed = []
+
+  for (let i = 0; i < rows.length; i += IMPORT_BATCH_SIZE) {
+    const batch = rows.slice(i, i + IMPORT_BATCH_SIZE)
+
+    try {
+      await createBills(batch)
+      success += batch.length
+    } catch {
+      for (const row of batch) {
+        try {
+          await createBills([row])
+          success++
+        } catch {
+          failed.push(row)
+        }
+      }
+    }
+  }
+
+  return { success, failed }
+}
+
+/** 解析 CSV 文件：校验后批量创建账单 */
 async function handleFileChange(e) {
   const file = e.target.files?.[0]
   if (!file) return
 
   importing.value = true
   try {
-    const text = await file.text()
-    const lines = text.split('\n').filter((l) => l.trim())
+    const text = (await file.text()).replace(/^\uFEFF/, '')
+    const lines = text.split(/\r?\n/).filter((l) => l.trim())
     if (lines.length < 2) {
       ElMessage.warning('CSV 文件为空或格式不正确')
       return
     }
 
     const nameToId = buildCategoryNameMap()
-
-    // 处理 CSV 转义逗号
-    const parseRow = (line) => {
-      const result = []
-      let current = ''
-      let inQuotes = false
-      for (const ch of line) {
-        if (ch === '"') {
-          inQuotes = !inQuotes
-        } else if (ch === ',' && !inQuotes) {
-          result.push(current)
-          current = ''
-        } else {
-          current += ch
-        }
-      }
-      result.push(current)
-      return result
-    }
-
-    const header = parseRow(lines[0])
-    const typeIdx = header.findIndex((h) => h === '类型')
-    const amountIdx = header.findIndex((h) => h === '金额')
-    const categoryIdx = header.findIndex((h) => h === '分类')
-    const dateIdx = header.findIndex((h) => h === '日期')
-    const noteIdx = header.findIndex((h) => h === '备注')
+    const header = parseCsvLine(lines[0]).map((h) => h.trim())
+    const typeIdx = header.indexOf('类型')
+    const amountIdx = header.indexOf('金额')
+    const categoryIdx = header.indexOf('分类')
+    const dateIdx = header.indexOf('日期')
+    const noteIdx = header.indexOf('备注')
 
     if (typeIdx === -1 || amountIdx === -1 || categoryIdx === -1 || dateIdx === -1) {
       ElMessage.error('CSV 表头缺少必要列：类型、金额、分类、日期')
       return
     }
 
-    let success = 0
-    let skipped = 0
+    const rows = []
+    const invalidRows = []
 
     for (let i = 1; i < lines.length; i++) {
-      const cols = parseRow(lines[i])
+      const lineNo = i + 1
+      const cols = parseCsvLine(lines[i])
       const typeLabel = cols[typeIdx]?.trim()
-      const amount = parseFloat(cols[amountIdx])
+      const amount = Number(cols[amountIdx]?.trim())
       const categoryName = cols[categoryIdx]?.trim()
       const date = cols[dateIdx]?.trim()
       const note = noteIdx !== -1 ? cols[noteIdx]?.trim() || '' : ''
 
-      if (!typeLabel || isNaN(amount) || !categoryName || !date) {
-        skipped++
+      if (!typeLabel || !categoryName || !date || !Number.isFinite(amount) || amount <= 0) {
+        invalidRows.push(`第${lineNo}行：缺少必要字段或金额无效`)
         continue
       }
 
       const type = typeLabel === '支出' ? 'expense' : typeLabel === '收入' ? 'income' : null
-      if (!type) { skipped++; continue }
+      if (!type) {
+        invalidRows.push(`第${lineNo}行：类型只能是“支出”或“收入”`)
+        continue
+      }
+
+      if (!isValidDate(date)) {
+        invalidRows.push(`第${lineNo}行：日期格式应为 YYYY-MM-DD`)
+        continue
+      }
 
       const categoryId = nameToId[categoryName]
-      if (!categoryId) { skipped++; continue }
+      if (!categoryId) {
+        invalidRows.push(`第${lineNo}行：未知分类“${categoryName}”`)
+        continue
+      }
 
-      await createBill({
+      rows.push({
         user_id: userId.value,
         type,
-        amount,
+        amount: Math.round(amount * 100) / 100,
         category_id: categoryId,
         bill_date: date,
         note,
       })
-      success++
     }
 
-    await fetchBills(userId.value)
-    ElMessage.success(`导入完成：成功 ${success} 条${skipped > 0 ? `，跳过 ${skipped} 条` : ''}`)
+    if (!rows.length) {
+      ElMessage.error(`没有可导入的数据${invalidRows.length ? `，${invalidRows.length} 行校验未通过` : ''}`)
+      return
+    }
+
+    const { success, failed } = await insertBillsInBatches(rows)
+    await loadBills()
+
+    const skipped = invalidRows.length + failed.length
+
+    if (success === 0) {
+      ElMessage.error('导入失败，请检查 CSV 内容')
+    } else if (skipped > 0) {
+      ElMessage.warning(`导入完成：成功 ${success} 条，跳过 ${skipped} 条`)
+    } else {
+      ElMessage.success(`导入完成：成功 ${success} 条`)
+    }
   } catch (err) {
     ElMessage.error(err.message || '导入失败')
   } finally {

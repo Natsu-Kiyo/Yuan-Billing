@@ -31,5 +31,14 @@ export default defineConfig({
       },
     },
   },
-  server: {},
+  server: {
+    // 代理智谱 AI 接口，避免浏览器直连时的 CORS 限制
+    proxy: {
+      '/zhipu': {
+        target: 'https://open.bigmodel.cn',
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/zhipu/, ''),
+      },
+    },
+  },
 })

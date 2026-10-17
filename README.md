@@ -13,7 +13,7 @@
 | 图表 | ECharts + vue-echarts |
 | CSS 预处理 | Less |
 | 后端服务 | Supabase（认证 + PostgreSQL） |
-| AI 服务 | 智谱 AI（GLM-4-Flash） |
+| AI 服务 | 智谱 AI（GLM-4.7-Flash） |
 | Markdown 渲染 | markdown-it |
 
 ## 功能特性

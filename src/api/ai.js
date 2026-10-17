@@ -1,6 +1,8 @@
-// AI 分析 API：智谱 GLM 模型流式调用（聊天 + 生成报告）
-const API_BASE = 'https://open.bigmodel.cn/api/paas/v4'
+// AI 分析 API：智谱 GLM-4.7-Flash 模型流式调用（聊天 + 生成报告）
+// 经 dev server / Netlify 代理转发，避免浏览器 CORS 限制
+const API_BASE = import.meta.env.VITE_AI_API_BASE || '/zhipu/api/paas/v4'
 const API_KEY = import.meta.env.VITE_ZHIPU_API_KEY
+const MODEL = 'glm-4.7-flash'
 
 /** 将统计数据构建为结构化文本上下文 */
 function buildContext(stats) {
@@ -78,13 +80,15 @@ async function streamChat({ messages, stats, systemPrompt, onChunk, onDone, onEr
   const prompt = systemPrompt || buildSystemPrompt(stats)
 
   const body = {
-    model: 'glm-4-flash',
+    model: MODEL,
     messages: [
       { role: 'system', content: prompt },
       ...messages,
     ],
     temperature: 0.7,
     max_tokens: 1024,
+    // GLM-4.7-Flash 默认开启思考模式，关闭后可直接输出正文、响应更快
+    thinking: { type: 'disabled' },
     stream: true,
   }
 

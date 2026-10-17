@@ -34,8 +34,12 @@ const fileInput = ref(null)
 // 初始化：加载分类和账单列表
 onMounted(async () => {
   if (!userId.value) return
-  await fetchCategories()
-  await fetchBills(userId.value)
+  try {
+    await fetchCategories()
+    await fetchBills(userId.value)
+  } catch (err) {
+    ElMessage.error(err.message || '加载账单数据失败')
+  }
 })
 
 // 筛选条件变化自动重新查询

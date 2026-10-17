@@ -37,7 +37,11 @@ const quickQuestions = [
 // 初始化统计上下文
 onMounted(async () => {
   if (!userId.value) return
-  await fetchStats(userId.value)
+  try {
+    await fetchStats(userId.value)
+  } catch (err) {
+    ElMessage.error(err.message || '加载财务数据失败')
+  }
 })
 
 // 新消息到达或流式输出时，自动滚动到底部

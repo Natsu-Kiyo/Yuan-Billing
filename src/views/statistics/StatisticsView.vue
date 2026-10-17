@@ -32,7 +32,11 @@ let debounceTimer = null
 
 onMounted(async () => {
   if (!userId.value) return
-  await fetchStats(userId.value)
+  try {
+    await fetchStats(userId.value)
+  } catch (err) {
+    ElMessage.error(err.message || '加载统计数据失败')
+  }
 })
 
 // 同步 store dateRange 到本地 UI 绑定值

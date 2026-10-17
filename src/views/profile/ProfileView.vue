@@ -26,8 +26,11 @@ const cropperVisible = ref(false)
 const pendingFile = ref(null)
 
 onMounted(async () => {
-  if (userId.value) {
+  if (!userId.value) return
+  try {
     await fetchStats(userId.value)
+  } catch (err) {
+    ElMessage.error(err.message || '加载统计数据失败')
   }
 })
 

@@ -95,16 +95,22 @@ onMounted(async () => {
 
 //选中日期变化时重新拉取当日统计
 watch(selectedDate, () => {
-  if (userId.value) {
+  if (userId.value && selectedDate.value) {
     fetchDayStats()
   }
 })
 
 //拉取选中日期的收支统计数据
 async function fetchDayStats() {
+  const date = selectedDate.value
+  // 未选中日期（如切换月份后）不应拉取，避免把全量数据当成当日数据
+  if (!date) {
+    dayStats.value = { expense: 0, income: 0, balance: 0, count: 0 }
+    return
+  }
+
   loadingDay.value = true
   try {
-    const date = selectedDate.value
     const data = await getStats({ userId: userId.value, startDate: date, endDate: date })
     let expense = 0
     let income = 0
@@ -151,16 +157,20 @@ async function loadRecentBills() {
   }
 }
 
-function prevMonth() {
-  currentDate.value = new Date(year.value, month.value - 1, 1)
+/** 切换月份：清空日期选择并同步重置“当日”统计 */
+function goToMonth(offset) {
+  currentDate.value = new Date(year.value, month.value + offset, 1)
   selectedDate.value = ''
+  dayStats.value = { expense: 0, income: 0, balance: 0, count: 0 }
   fetchMonthBills()
 }
 
+function prevMonth() {
+  goToMonth(-1)
+}
+
 function nextMonth() {
-  currentDate.value = new Date(year.value, month.value + 1, 1)
-  selectedDate.value = ''
-  fetchMonthBills()
+  goToMonth(1)
 }
 
 //图标映射

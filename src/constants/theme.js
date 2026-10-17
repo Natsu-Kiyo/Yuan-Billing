@@ -9,9 +9,13 @@ export const THEME_COLORS = {
 /** 将十六进制颜色转为带透明度的 rgba，用于图表渐变 */
 export function withAlpha(hex, alpha) {
   const value = String(hex).replace('#', '')
-  const normalized = value.length === 3
-    ? value.split('').map((char) => char + char).join('')
-    : value
+  const normalized =
+    value.length === 3
+      ? value
+          .split('')
+          .map((char) => char + char)
+          .join('')
+      : value
 
   const r = Number.parseInt(normalized.slice(0, 2), 16)
   const g = Number.parseInt(normalized.slice(2, 4), 16)

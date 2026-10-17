@@ -2,13 +2,7 @@
 // 侧边导航栏：菜单项配置、折叠/展开、当前路由高亮
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import {
-  DataBoard,
-  Tickets,
-  PieChart,
-  Cpu,
-  User,
-} from '@element-plus/icons-vue'
+import { DataBoard, Tickets, PieChart, Cpu, User } from '@element-plus/icons-vue'
 
 defineProps({
   collapsed: {
@@ -91,7 +85,11 @@ function navigate(path) {
     </nav>
 
     <div class="sidebar-footer">
-      <button class="collapse-btn" @click="emit('toggle')" :title="collapsed ? '展开菜单' : '收起菜单'">
+      <button
+        class="collapse-btn"
+        @click="emit('toggle')"
+        :title="collapsed ? '展开菜单' : '收起菜单'"
+      >
         <el-icon :size="18">
           <el-icon-d-arrow-left v-if="!collapsed" />
           <el-icon-d-arrow-right v-else />

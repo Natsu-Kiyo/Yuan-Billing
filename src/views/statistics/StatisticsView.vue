@@ -46,7 +46,7 @@ watch(
     startDateValue.value = dateRange.startDate || null
     endDateValue.value = dateRange.endDate || null
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 /** 日期范围变化时防抖拉取统计（清空日期同样需要刷新回全量数据） */

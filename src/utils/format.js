@@ -15,9 +15,7 @@ export function sanitizeAmount(raw) {
 
   const dotIndex = val.indexOf('.')
   if (dotIndex !== -1) {
-    val =
-      val.slice(0, dotIndex + 1) +
-      val.slice(dotIndex + 1).replace(/\./g, '')
+    val = val.slice(0, dotIndex + 1) + val.slice(dotIndex + 1).replace(/\./g, '')
     const [intPart, decPart] = val.split('.')
     val = `${intPart}.${decPart.slice(0, 2)}`
   }

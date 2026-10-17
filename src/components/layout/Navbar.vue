@@ -22,7 +22,9 @@ const emit = defineEmits(['toggle-sidebar'])
 const router = useRouter()
 const { profile, logout } = useAuth()
 
-const avatarUrl = computed(() => getAvatarUrl(profile.value?.nickname, 64, profile.value?.avatar_url))
+const avatarUrl = computed(() =>
+  getAvatarUrl(profile.value?.nickname, 64, profile.value?.avatar_url),
+)
 
 async function handleLogout() {
   try {

@@ -19,19 +19,19 @@ import { THEME_COLORS } from './theme'
 export const DEFAULT_CATEGORY_COLOR = THEME_COLORS.brand
 
 export const CATEGORY_ICON_MAP = {
-  '餐饮': Food,
-  '交通': Van,
-  '购物': ShoppingCart,
-  '娱乐': VideoPlay,
-  '学习': Reading,
-  '住房': House,
-  '医疗': FirstAidKit,
-  '其他支出': More,
-  '工资': Money,
-  '兼职': Coin,
-  '生活费': Wallet,
-  '红包': Present,
-  '其他收入': MoreFilled,
+  餐饮: Food,
+  交通: Van,
+  购物: ShoppingCart,
+  娱乐: VideoPlay,
+  学习: Reading,
+  住房: House,
+  医疗: FirstAidKit,
+  其他支出: More,
+  工资: Money,
+  兼职: Coin,
+  生活费: Wallet,
+  红包: Present,
+  其他收入: MoreFilled,
 }
 
 /** 根据分类名称获取图标组件，未知分类回退到钱包 */

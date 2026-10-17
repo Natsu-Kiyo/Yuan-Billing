@@ -2,7 +2,17 @@
 import { supabase } from './supabase'
 
 /** 分页查询账单列表，支持按类型、分类、日期范围、金额范围筛选 */
-export async function fetchBills({ userId, type, categoryId, startDate, endDate, minAmount, maxAmount, page = 1, pageSize = 10 }) {
+export async function fetchBills({
+  userId,
+  type,
+  categoryId,
+  startDate,
+  endDate,
+  minAmount,
+  maxAmount,
+  page = 1,
+  pageSize = 10,
+}) {
   let query = supabase
     .from('bills')
     .select('*, categories(name, icon, color)', { count: 'exact' })
@@ -59,9 +69,7 @@ export async function createBill(data) {
 export async function createBills(rows) {
   if (!rows?.length) return
 
-  const { error } = await supabase
-    .from('bills')
-    .insert(rows)
+  const { error } = await supabase.from('bills').insert(rows)
 
   if (error) throw error
 }
@@ -81,10 +89,7 @@ export async function updateBill(id, data) {
 
 /** 删除指定账单 */
 export async function deleteBill(id) {
-  const { error } = await supabase
-    .from('bills')
-    .delete()
-    .eq('id', id)
+  const { error } = await supabase.from('bills').delete().eq('id', id)
 
   if (error) throw error
 }

@@ -5,9 +5,18 @@ import { useStatisticsStore } from '@/stores/statistics'
 export function useStatistics() {
   const store = useStatisticsStore()
   const {
-    stats, loading, error, dateRange,
-    totalExpense, totalIncome, balance, billCount,
-    expenseByCategory, incomeByCategory, monthlyTrend, averageDailyExpense,
+    stats,
+    loading,
+    error,
+    dateRange,
+    totalExpense,
+    totalIncome,
+    balance,
+    billCount,
+    expenseByCategory,
+    incomeByCategory,
+    monthlyTrend,
+    averageDailyExpense,
   } = storeToRefs(store)
 
   return {

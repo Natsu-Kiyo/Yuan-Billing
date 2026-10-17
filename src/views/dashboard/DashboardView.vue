@@ -274,11 +274,7 @@ function isSelectedDate(dateStr) {
             <span v-for="d in weekDays" :key="d" class="weekday-label">{{ d }}</span>
           </div>
           <div class="calendar-body">
-            <div
-              v-for="(week, wi) in calendarData.weeks"
-              :key="wi"
-              class="calendar-week"
-            >
+            <div v-for="(week, wi) in calendarData.weeks" :key="wi" class="calendar-week">
               <el-tooltip
                 v-for="(cell, ci) in week"
                 :key="ci"
@@ -290,7 +286,10 @@ function isSelectedDate(dateStr) {
                 <div
                   v-if="cell"
                   class="calendar-cell"
-                  :class="{ 'is-today': cell.date === today, 'is-selected': isSelectedDate(cell.date) }"
+                  :class="{
+                    'is-today': cell.date === today,
+                    'is-selected': isSelectedDate(cell.date),
+                  }"
                   :style="{ background: cellColor(cell.intensity) }"
                   @click="handleCellClick(cell)"
                 >
@@ -324,11 +323,7 @@ function isSelectedDate(dateStr) {
         </div>
 
         <div v-else class="recent-list">
-          <div
-            v-for="bill in recentBills"
-            :key="bill.id"
-            class="recent-item"
-          >
+          <div v-for="bill in recentBills" :key="bill.id" class="recent-item">
             <div
               class="recent-icon"
               :style="{ background: bill.categories?.color || DEFAULT_CATEGORY_COLOR }"
@@ -342,10 +337,7 @@ function isSelectedDate(dateStr) {
               <span class="recent-note" v-if="bill.note">{{ bill.note }}</span>
             </div>
             <div class="recent-right">
-              <span
-                class="recent-amount"
-                :class="bill.type === 'income' ? 'income' : 'expense'"
-              >
+              <span class="recent-amount" :class="bill.type === 'income' ? 'income' : 'expense'">
                 {{ bill.type === 'income' ? '+' : '-' }}{{ formatAmount(bill.amount) }}
               </span>
               <span class="recent-date">{{ formatDate(bill.bill_date) }}</span>

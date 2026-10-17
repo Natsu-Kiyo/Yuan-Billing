@@ -454,18 +454,15 @@ function handleConfirm() {
   const ctx = canvas.getContext('2d')
   ctx.drawImage(img, sx, sy, sSize, sSize, 0, 0, sSize, sSize)
 
-  canvas.toBlob(
-    (blob) => {
-      if (!blob) {
-        emit('update:visible', false)
-        return
-      }
-      const file = new File([blob], 'avatar.png', { type: 'image/png' })
-      emit('cropped', file)
+  canvas.toBlob((blob) => {
+    if (!blob) {
       emit('update:visible', false)
-    },
-    'image/png',
-  )
+      return
+    }
+    const file = new File([blob], 'avatar.png', { type: 'image/png' })
+    emit('cropped', file)
+    emit('update:visible', false)
+  }, 'image/png')
 }
 </script>
 
@@ -580,8 +577,16 @@ function handleConfirm() {
     linear-gradient(to bottom, rgba(255, 255, 255, 0.35) 1px, transparent 1px),
     linear-gradient(to right, rgba(255, 255, 255, 0.35) 1px, transparent 1px),
     linear-gradient(to right, rgba(255, 255, 255, 0.35) 1px, transparent 1px);
-  background-position: 0 33.33%, 0 66.66%, 33.33% 0, 66.66% 0;
-  background-size: 100% 1px, 100% 1px, 1px 100%, 1px 100%;
+  background-position:
+    0 33.33%,
+    0 66.66%,
+    33.33% 0,
+    66.66% 0;
+  background-size:
+    100% 1px,
+    100% 1px,
+    1px 100%,
+    1px 100%;
   background-repeat: no-repeat;
 }
 

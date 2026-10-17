@@ -14,7 +14,9 @@ const { user, userId, profile, updateProfile, logout } = useAuth()
 const { totalExpense, totalIncome, balance, billCount, fetchStats } = useStatistics()
 
 // 头像 URL：优先自定义，否则通过昵称自动生成
-const avatarUrl = computed(() => getAvatarUrl(profile.value?.nickname, 144, profile.value?.avatar_url))
+const avatarUrl = computed(() =>
+  getAvatarUrl(profile.value?.nickname, 144, profile.value?.avatar_url),
+)
 
 const editing = ref(false)
 const saving = ref(false)
@@ -118,9 +120,7 @@ async function handleCropped(croppedFile) {
 
     if (uploadError) throw uploadError
 
-    const { data: urlData } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(filePath)
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath)
 
     const cacheBustedUrl = `${urlData.publicUrl}?v=${Date.now()}`
     await updateProfile({ avatar_url: cacheBustedUrl })
@@ -176,11 +176,7 @@ async function handleRemoveAvatar() {
             @change="handleFileChange"
           />
           <div class="avatar-actions">
-            <el-button
-              size="small"
-              :loading="uploading"
-              @click="triggerUpload"
-            >
+            <el-button size="small" :loading="uploading" @click="triggerUpload">
               上传头像
             </el-button>
             <el-button
@@ -218,9 +214,7 @@ async function handleRemoveAvatar() {
           </div>
           <div class="edit-actions">
             <el-button @click="cancelEdit">取消</el-button>
-            <el-button type="primary" :loading="saving" @click="handleSave">
-              保存
-            </el-button>
+            <el-button type="primary" :loading="saving" @click="handleSave"> 保存 </el-button>
           </div>
         </div>
       </div>
@@ -438,8 +432,12 @@ async function handleRemoveAvatar() {
   font-weight: 600;
   color: var(--color-text-primary);
 
-  &.expense { color: var(--color-expense); }
-  &.income { color: var(--color-income); }
+  &.expense {
+    color: var(--color-expense);
+  }
+  &.income {
+    color: var(--color-income);
+  }
 }
 
 .settings-list {

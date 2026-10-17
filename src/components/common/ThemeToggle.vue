@@ -6,7 +6,11 @@ const { isDark, toggleTheme } = useTheme()
 </script>
 
 <template>
-  <button class="theme-toggle" @click="toggleTheme" :title="isDark ? '切换浅色模式' : '切换深色模式'">
+  <button
+    class="theme-toggle"
+    @click="toggleTheme"
+    :title="isDark ? '切换浅色模式' : '切换深色模式'"
+  >
     <el-icon :size="20">
       <el-icon-sunny v-if="isDark" />
       <el-icon-moon v-else />

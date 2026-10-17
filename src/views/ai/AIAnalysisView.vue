@@ -11,13 +11,16 @@ import { formatAmount } from '@/utils/format'
 const md = new MarkdownIt({ breaks: true, linkify: true })
 
 const { userId } = useAuth()
+const { messages, loading, streamingContent, sendMessage, generateReport, clearMessages } = useAI()
 const {
-  messages, loading, streamingContent,
-  sendMessage, generateReport, clearMessages,
-} = useAI()
-const {
-  totalExpense, totalIncome, balance, billCount,
-  expenseByCategory, incomeByCategory, monthlyTrend, averageDailyExpense,
+  totalExpense,
+  totalIncome,
+  balance,
+  billCount,
+  expenseByCategory,
+  incomeByCategory,
+  monthlyTrend,
+  averageDailyExpense,
   fetchStats,
 } = useStatistics()
 
@@ -53,7 +56,7 @@ watch(
         chatContainer.value.scrollTop = chatContainer.value.scrollHeight
       }
     })
-  }
+  },
 )
 
 // 已完成消息的渲染结果按内容缓存，避免流式输出时反复解析整段历史
@@ -143,12 +146,7 @@ function formatTime(ts) {
         <h1 class="page-title">AI 消费分析</h1>
         <p class="page-subtitle">智能分析消费习惯，获取个性化理财建议</p>
       </div>
-      <el-button
-        type="primary"
-        size="large"
-        :loading="loading"
-        @click="handleGenerateReport"
-      >
+      <el-button type="primary" size="large" :loading="loading" @click="handleGenerateReport">
         <el-icon :size="16"><el-icon-document></el-icon-document></el-icon>
         生成分析报告
       </el-button>
@@ -176,12 +174,7 @@ function formatTime(ts) {
             </div>
           </div>
 
-          <div
-            v-for="(msg, idx) in messages"
-            :key="idx"
-            class="chat-message"
-            :class="msg.role"
-          >
+          <div v-for="(msg, idx) in messages" :key="idx" class="chat-message" :class="msg.role">
             <div class="message-avatar">
               <el-icon v-if="msg.role === 'user'" :size="18"><el-icon-user></el-icon-user></el-icon>
               <el-icon v-else :size="18"><el-icon-cpu></el-icon-cpu></el-icon>
@@ -210,9 +203,7 @@ function formatTime(ts) {
                   class="message-content markdown-body"
                   v-html="renderMarkdown(streamingContent)"
                 ></div>
-                <div v-else class="typing-indicator">
-                  <span></span><span></span><span></span>
-                </div>
+                <div v-else class="typing-indicator"><span></span><span></span><span></span></div>
               </div>
             </div>
           </div>
@@ -231,11 +222,7 @@ function formatTime(ts) {
               @focus="inputFocused = true"
               @blur="inputFocused = false"
             />
-            <el-button
-              type="primary"
-              :disabled="!inputText.trim() || loading"
-              @click="handleSend"
-            >
+            <el-button type="primary" :disabled="!inputText.trim() || loading" @click="handleSend">
               <el-icon :size="18"><el-icon-promotion></el-icon-promotion></el-icon>
             </el-button>
           </div>
@@ -278,11 +265,7 @@ function formatTime(ts) {
 
         <div v-if="expenseByCategory.length" class="top-categories">
           <h4 class="section-label">支出 Top 3</h4>
-          <div
-            v-for="cat in expenseByCategory.slice(0, 3)"
-            :key="cat.name"
-            class="category-row"
-          >
+          <div v-for="cat in expenseByCategory.slice(0, 3)" :key="cat.name" class="category-row">
             <span class="cat-dot" :style="{ background: cat.color }"></span>
             <span class="cat-name">{{ cat.name }}</span>
             <span class="cat-amount">{{ formatAmount(cat.value) }}</span>
@@ -479,21 +462,31 @@ function formatTime(ts) {
 }
 
 .markdown-body {
-  :deep(h1), :deep(h2), :deep(h3), :deep(h4) {
+  :deep(h1),
+  :deep(h2),
+  :deep(h3),
+  :deep(h4) {
     margin: 4px 0 2px;
     font-weight: 600;
     line-height: 1.3;
   }
 
-  :deep(h1) { font-size: 17px; }
-  :deep(h2) { font-size: 15px; }
-  :deep(h3) { font-size: 14px; }
+  :deep(h1) {
+    font-size: 17px;
+  }
+  :deep(h2) {
+    font-size: 15px;
+  }
+  :deep(h3) {
+    font-size: 14px;
+  }
 
   :deep(p) {
     margin: 0;
   }
 
-  :deep(ul), :deep(ol) {
+  :deep(ul),
+  :deep(ol) {
     padding-left: 18px;
     margin: 0;
   }
@@ -549,7 +542,8 @@ function formatTime(ts) {
     width: 100%;
     margin: 4px 0;
 
-    th, td {
+    th,
+    td {
       border: 1px solid var(--color-border);
       padding: 4px 8px;
       text-align: left;
@@ -587,15 +581,29 @@ function formatTime(ts) {
     background: var(--color-text-tertiary);
     animation: typing 1.4s infinite ease-in-out;
 
-    &:nth-child(1) { animation-delay: 0s; }
-    &:nth-child(2) { animation-delay: 0.2s; }
-    &:nth-child(3) { animation-delay: 0.4s; }
+    &:nth-child(1) {
+      animation-delay: 0s;
+    }
+    &:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    &:nth-child(3) {
+      animation-delay: 0.4s;
+    }
   }
 }
 
 @keyframes typing {
-  0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); }
-  30% { opacity: 1; transform: scale(1); }
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .chat-footer {
@@ -708,8 +716,12 @@ function formatTime(ts) {
   font-weight: 600;
   color: var(--color-text-primary);
 
-  &.expense { color: var(--color-expense); }
-  &.income { color: var(--color-income); }
+  &.expense {
+    color: var(--color-expense);
+  }
+  &.income {
+    color: var(--color-income);
+  }
 }
 
 .top-categories {

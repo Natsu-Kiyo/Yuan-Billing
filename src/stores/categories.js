@@ -9,13 +9,9 @@ export const useCategoriesStore = defineStore('categories', () => {
   const error = ref(null)
 
   // 按账单类型拆分分类（支出/收入）
-  const expenseCategories = computed(() =>
-    categories.value.filter((c) => c.type === 'expense')
-  )
+  const expenseCategories = computed(() => categories.value.filter((c) => c.type === 'expense'))
 
-  const incomeCategories = computed(() =>
-    categories.value.filter((c) => c.type === 'income')
-  )
+  const incomeCategories = computed(() => categories.value.filter((c) => c.type === 'income'))
 
   // 快速查找映射（id → category 对象）
   const categoryMap = computed(() => {

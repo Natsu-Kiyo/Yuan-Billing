@@ -3,7 +3,12 @@
 import { computed } from 'vue'
 import { use } from 'echarts/core'
 import { LineChart } from 'echarts/charts'
-import { TitleComponent, TooltipComponent, LegendComponent, GridComponent } from 'echarts/components'
+import {
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent,
+  GridComponent,
+} from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import VChart from 'vue-echarts'
 import { useChartTheme } from '@/composables/useChartTheme'
@@ -80,7 +85,10 @@ const option = computed(() => {
         areaStyle: {
           color: {
             type: 'linear',
-            x: 0, y: 0, x2: 0, y2: 1,
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
             colorStops: [
               { offset: 0, color: withAlpha(THEME_COLORS.expense, 0.15) },
               { offset: 1, color: withAlpha(THEME_COLORS.expense, 0.01) },
@@ -100,7 +108,10 @@ const option = computed(() => {
         areaStyle: {
           color: {
             type: 'linear',
-            x: 0, y: 0, x2: 0, y2: 1,
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
             colorStops: [
               { offset: 0, color: withAlpha(THEME_COLORS.income, 0.15) },
               { offset: 1, color: withAlpha(THEME_COLORS.income, 0.01) },

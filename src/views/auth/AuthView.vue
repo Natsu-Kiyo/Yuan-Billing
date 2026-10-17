@@ -16,7 +16,7 @@ watch(
   () => route.name,
   (name) => {
     mode.value = name === 'Register' ? 'register' : 'login'
-  }
+  },
 )
 
 const formRef = ref(null)
@@ -187,11 +187,7 @@ function handleSubmit() {
         >
           <!-- 注册昵称 -->
           <el-form-item v-if="!isLogin" label="昵称" prop="nickname">
-            <el-input
-              v-model="form.nickname"
-              placeholder="请输入你的昵称"
-              size="large"
-            >
+            <el-input v-model="form.nickname" placeholder="请输入你的昵称" size="large">
               <template #prefix>
                 <el-icon><el-icon-user></el-icon-user></el-icon>
               </template>
@@ -200,11 +196,7 @@ function handleSubmit() {
 
           <!-- 邮箱 -->
           <el-form-item label="邮箱" prop="email">
-            <el-input
-              v-model="form.email"
-              placeholder="请输入邮箱地址"
-              size="large"
-            >
+            <el-input v-model="form.email" placeholder="请输入邮箱地址" size="large">
               <template #prefix>
                 <el-icon><el-icon-message></el-icon-message></el-icon>
               </template>

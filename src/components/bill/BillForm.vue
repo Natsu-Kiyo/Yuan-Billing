@@ -37,7 +37,7 @@ const form = reactive({
 
 // 根据当前类型返回对应的分类列表
 const currentCategories = computed(() =>
-  form.type === 'expense' ? expenseCategories.value : incomeCategories.value
+  form.type === 'expense' ? expenseCategories.value : incomeCategories.value,
 )
 
 // 自定义金额校验规则
@@ -55,12 +55,8 @@ const rules = {
     { required: true, message: '请输入金额', trigger: 'blur' },
     { validator: validateAmount, trigger: 'blur' },
   ],
-  categoryId: [
-    { required: true, message: '请选择分类', trigger: 'change' },
-  ],
-  billDate: [
-    { required: true, message: '请选择日期', trigger: 'change' },
-  ],
+  categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }],
+  billDate: [{ required: true, message: '请选择日期', trigger: 'change' }],
 }
 
 // 弹窗打开时初始化表单数据（新增或编辑回填）
@@ -83,7 +79,7 @@ watch(
       form.categoryId = props.editData?.category_id ?? null
       isInitializing.value = false
     }
-  }
+  },
 )
 
 // 切换类型时清空分类选择（非初始化阶段）
@@ -93,7 +89,7 @@ watch(
     if (!isInitializing.value) {
       form.categoryId = null
     }
-  }
+  },
 )
 
 // 提交表单：校验通过后根据新增/编辑调用对应 API
@@ -195,10 +191,7 @@ function handleClose() {
             :value="cat.id"
           >
             <div class="category-option">
-              <span
-                class="category-dot"
-                :style="{ background: cat.color }"
-              ></span>
+              <span class="category-dot" :style="{ background: cat.color }"></span>
               <span>{{ cat.name }}</span>
             </div>
           </el-option>
@@ -217,12 +210,7 @@ function handleClose() {
       </el-form-item>
 
       <el-form-item label="备注">
-        <el-input
-          v-model="form.note"
-          placeholder="添加备注（可选）"
-          type="textarea"
-          :rows="2"
-        />
+        <el-input v-model="form.note" placeholder="添加备注（可选）" type="textarea" :rows="2" />
       </el-form-item>
     </el-form>
 

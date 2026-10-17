@@ -39,7 +39,11 @@ onUnmounted(() => {
   <div class="app-layout">
     <Sidebar :collapsed="sidebarCollapsed" @toggle="toggleSidebar" />
     <div class="layout-main" :style="{ marginLeft: sidebarWidth }">
-      <Navbar :sidebar-collapsed="sidebarCollapsed" :navbar-left="sidebarWidth" @toggle-sidebar="toggleSidebar" />
+      <Navbar
+        :sidebar-collapsed="sidebarCollapsed"
+        :navbar-left="sidebarWidth"
+        @toggle-sidebar="toggleSidebar"
+      />
       <main class="layout-content">
         <router-view v-slot="{ Component }">
           <transition name="slide-up" mode="out-in">

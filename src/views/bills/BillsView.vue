@@ -12,19 +12,11 @@ import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 
 const { userId } = useAuth()
 const categoriesStore = useCategoriesStore()
-const {
-  bills,
-  loading,
-  filters,
-  pagination,
-  fetchBills,
-  removeBill,
-  setPage,
-  fetchCategories,
-} = useBills()
+const { bills, loading, filters, pagination, fetchBills, removeBill, setPage, fetchCategories } =
+  useBills()
 
 const formVisible = ref(false)
-const editData = ref(null)       // 编辑时传入已有数据，null 表示新增
+const editData = ref(null) // 编辑时传入已有数据，null 表示新增
 const deleteTarget = ref(null)
 const deleteVisible = ref(false)
 const exporting = ref(false)
@@ -54,8 +46,15 @@ async function loadBills() {
 
 // 筛选条件变化自动重新查询
 watch(
-  () => [filters.value.type, filters.value.categoryId, filters.value.startDate, filters.value.endDate, filters.value.minAmount, filters.value.maxAmount],
-  loadBills
+  () => [
+    filters.value.type,
+    filters.value.categoryId,
+    filters.value.startDate,
+    filters.value.endDate,
+    filters.value.minAmount,
+    filters.value.maxAmount,
+  ],
+  loadBills,
 )
 
 // --- CRUD 操作 ---
@@ -133,7 +132,8 @@ async function handleExport() {
     })
 
     const bom = '\uFEFF'
-    const csv = bom + rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
+    const csv =
+      bom + rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -194,11 +194,7 @@ function isValidDate(value) {
   const [year, month, day] = value.split('-').map(Number)
   const date = new Date(year, month - 1, day)
 
-  return (
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day
-  )
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
 }
 
 const IMPORT_BATCH_SIZE = 200
@@ -301,7 +297,9 @@ async function handleFileChange(e) {
     }
 
     if (!rows.length) {
-      ElMessage.error(`没有可导入的数据${invalidRows.length ? `，${invalidRows.length} 行校验未通过` : ''}`)
+      ElMessage.error(
+        `没有可导入的数据${invalidRows.length ? `，${invalidRows.length} 行校验未通过` : ''}`,
+      )
       return
     }
 
@@ -361,12 +359,7 @@ async function handleFileChange(e) {
     </div>
 
     <div class="section-card">
-      <BillList
-        :bills="bills"
-        :loading="loading"
-        @edit="handleEdit"
-        @delete="handleDelete"
-      />
+      <BillList :bills="bills" :loading="loading" @edit="handleEdit" @delete="handleDelete" />
     </div>
 
     <div v-if="pagination.total > pagination.pageSize" class="pagination-wrapper">

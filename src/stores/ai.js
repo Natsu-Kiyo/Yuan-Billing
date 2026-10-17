@@ -8,9 +8,7 @@ const MAX_HISTORY_MESSAGES = 20
 
 /** 取最近若干条消息作为上下文，并保证以用户消息开头 */
 function buildHistory(list) {
-  const recent = list
-    .filter((m) => !m._streaming)
-    .slice(-MAX_HISTORY_MESSAGES)
+  const recent = list.filter((m) => !m._streaming).slice(-MAX_HISTORY_MESSAGES)
 
   while (recent.length && recent[0].role !== 'user') {
     recent.shift()
@@ -20,10 +18,10 @@ function buildHistory(list) {
 }
 
 export const useAIStore = defineStore('ai', () => {
-  const messages = ref([])          // 对话历史
-  const loading = ref(false)        // 请求进行中
-  const error = ref(null)           // 错误信息
-  const streamingContent = ref('')  // 当前流式输出中的内容
+  const messages = ref([]) // 对话历史
+  const loading = ref(false) // 请求进行中
+  const error = ref(null) // 错误信息
+  const streamingContent = ref('') // 当前流式输出中的内容
 
   const hasMessages = computed(() => messages.value.length > 0)
 

@@ -8,13 +8,19 @@ export function useBills() {
   const categoriesStore = useCategoriesStore()
 
   const {
-    bills, loading, error, filters, pagination,
-    totalIncome, totalExpense, balance, currentBill,
+    bills,
+    loading,
+    error,
+    filters,
+    pagination,
+    totalIncome,
+    totalExpense,
+    balance,
+    currentBill,
   } = storeToRefs(billsStore)
 
-  const {
-    categories, expenseCategories, incomeCategories, categoryMap,
-  } = storeToRefs(categoriesStore)
+  const { categories, expenseCategories, incomeCategories, categoryMap } =
+    storeToRefs(categoriesStore)
 
   return {
     bills,

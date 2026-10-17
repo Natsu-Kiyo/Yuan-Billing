@@ -27,7 +27,7 @@ watch(
     startDate.value = start || null
     endDate.value = end || null
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // 双向同步 store 中的金额筛选值到本地输入框
@@ -37,7 +37,7 @@ watch(
     if (minAmount.value !== min) minAmount.value = min
     if (maxAmount.value !== max) maxAmount.value = max
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 /** 空值或非法输入返回 null，避免把 NaN 传给查询 */
@@ -99,11 +99,7 @@ function disableEndDate(date) {
 <template>
   <div class="bill-filter">
     <div class="filter-group">
-      <el-radio-group
-        :model-value="filters.type"
-        size="small"
-        @change="handleTypeChange"
-      >
+      <el-radio-group :model-value="filters.type" size="small" @change="handleTypeChange">
         <el-radio-button value="all">全部</el-radio-button>
         <el-radio-button value="expense">支出</el-radio-button>
         <el-radio-button value="income">收入</el-radio-button>

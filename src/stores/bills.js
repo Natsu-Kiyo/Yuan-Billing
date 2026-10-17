@@ -35,15 +35,11 @@ export const useBillsStore = defineStore('bills', () => {
 
   // 基于当前列表实时计算的收支汇总
   const totalIncome = computed(() =>
-    bills.value
-      .filter((b) => b.type === 'income')
-      .reduce((sum, b) => sum + Number(b.amount), 0)
+    bills.value.filter((b) => b.type === 'income').reduce((sum, b) => sum + Number(b.amount), 0),
   )
 
   const totalExpense = computed(() =>
-    bills.value
-      .filter((b) => b.type === 'expense')
-      .reduce((sum, b) => sum + Number(b.amount), 0)
+    bills.value.filter((b) => b.type === 'expense').reduce((sum, b) => sum + Number(b.amount), 0),
   )
 
   const balance = computed(() => totalIncome.value - totalExpense.value)

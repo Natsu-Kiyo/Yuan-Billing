@@ -59,11 +59,7 @@ export async function getUser() {
 
 /** 根据 userId 查询 profiles 表获取用户资料（资料缺失时返回 null，不影响登录） */
 export async function getProfile(userId) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .maybeSingle()
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
 
   if (error) throw error
   return data

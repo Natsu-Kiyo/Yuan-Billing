@@ -10,18 +10,22 @@ function buildContext(stats) {
   const parts = []
 
   if (stats.totalExpense > 0 || stats.totalIncome > 0) {
-    parts.push(`总支出: ¥${stats.totalExpense.toFixed(2)}，总收入: ¥${stats.totalIncome.toFixed(2)}，结余: ¥${stats.balance.toFixed(2)}`)
+    parts.push(
+      `总支出: ¥${stats.totalExpense.toFixed(2)}，总收入: ¥${stats.totalIncome.toFixed(2)}，结余: ¥${stats.balance.toFixed(2)}`,
+    )
   }
 
   if (stats.expenseByCategory?.length) {
-    const top = stats.expenseByCategory.slice(0, 5)
+    const top = stats.expenseByCategory
+      .slice(0, 5)
       .map((c) => `${c.name}(¥${c.value.toFixed(2)})`)
       .join('、')
     parts.push(`支出分类 Top5: ${top}`)
   }
 
   if (stats.incomeByCategory?.length) {
-    const top = stats.incomeByCategory.slice(0, 3)
+    const top = stats.incomeByCategory
+      .slice(0, 3)
       .map((c) => `${c.name}(¥${c.value.toFixed(2)})`)
       .join('、')
     parts.push(`收入分类: ${top}`)
@@ -93,10 +97,7 @@ async function streamChat({ messages, stats, systemPrompt, onChunk, onDone, onEr
 
   const body = {
     model: MODEL,
-    messages: [
-      { role: 'system', content: prompt },
-      ...messages,
-    ],
+    messages: [{ role: 'system', content: prompt }, ...messages],
     temperature: 0.7,
     max_tokens: 1024,
     // GLM-4.7-Flash 默认开启思考模式，关闭后可直接输出正文、响应更快
@@ -109,7 +110,7 @@ async function streamChat({ messages, stats, systemPrompt, onChunk, onDone, onEr
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
     })

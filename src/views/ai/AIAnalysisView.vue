@@ -12,7 +12,7 @@ const md = new MarkdownIt({ breaks: true, linkify: true })
 
 const { userId } = useAuth()
 const {
-  messages, loading, error, streamingContent,
+  messages, loading, streamingContent,
   sendMessage, generateReport, clearMessages,
 } = useAI()
 const {
@@ -279,7 +279,7 @@ function formatTime(ts) {
         <div v-if="expenseByCategory.length" class="top-categories">
           <h4 class="section-label">支出 Top 3</h4>
           <div
-            v-for="(cat, idx) in expenseByCategory.slice(0, 3)"
+            v-for="cat in expenseByCategory.slice(0, 3)"
             :key="cat.name"
             class="category-row"
           >

@@ -59,7 +59,7 @@ ${stats ? buildContext(stats) : '暂无数据'}
 }
 
 /** 构建报告生成模式的 System Prompt */
-function buildReportPrompt(stats) {
+function buildReportPrompt() {
   return `你是一位专业的个人财务管理顾问。请根据用户的财务数据生成一份简洁的消费分析报告。
 
 报告格式要求：
@@ -73,12 +73,12 @@ function buildReportPrompt(stats) {
 
 /** 通用 SSE 流式请求处理 */
 async function streamChat({ messages, stats, systemPrompt, onChunk, onDone, onError }) {
-  let token = ''
+  let token
 
   try {
     const { data, error } = await supabase.auth.getSession()
     if (error) throw error
-    token = data.session?.access_token || ''
+    token = data.session?.access_token
   } catch (err) {
     onError(err instanceof Error ? err : new Error('获取登录状态失败'))
     return
@@ -170,7 +170,7 @@ export async function generateReportStream({ stats, onChunk, onDone, onError }) 
   await streamChat({
     messages,
     stats,
-    systemPrompt: buildReportPrompt(stats),
+    systemPrompt: buildReportPrompt(),
     onChunk,
     onDone,
     onError,

@@ -17,7 +17,6 @@ const {
   totalExpense,
   totalIncome,
   balance,
-  billCount,
   expenseByCategory,
   incomeByCategory,
   monthlyTrend,

@@ -9,9 +9,12 @@ npm install            # Install dependencies (Node >= 20.19.0)
 npm run dev            # Start Vite dev server
 npm run build          # Production build to dist/
 npm run preview        # Preview production build locally
+npm run lint           # ESLint (flat config, Vue 3)
+npm run format         # Prettier write for src/
+npm test               # Vitest unit tests
 ```
 
-No test runner or linter is configured.
+Unit tests live next to the code (`src/**/*.spec.js`) and cover pure helpers such as `formatAmount`, `sanitizeAmount`, `formatDate`, and `countDays`.
 
 ## Architecture
 

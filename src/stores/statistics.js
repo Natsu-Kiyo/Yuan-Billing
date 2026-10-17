@@ -2,16 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref, reactive, computed } from 'vue'
 import { fetchStats as apiFetchStats } from '@/api/statistics'
-
-/** 计算两个 YYYY-MM-DD 之间的天数（含首尾），用 UTC 避免时区偏移 */
-function countDays(start, end) {
-  const [sy, sm, sd] = start.split('-').map(Number)
-  const [ey, em, ed] = end.split('-').map(Number)
-  const startMs = Date.UTC(sy, sm - 1, sd)
-  const endMs = Date.UTC(ey, em - 1, ed)
-  if (Number.isNaN(startMs) || Number.isNaN(endMs) || endMs < startMs) return 0
-  return Math.round((endMs - startMs) / 86400000) + 1
-}
+import { countDays } from '@/utils/date'
 
 export const useStatisticsStore = defineStore('statistics', () => {
   const stats = ref(null)

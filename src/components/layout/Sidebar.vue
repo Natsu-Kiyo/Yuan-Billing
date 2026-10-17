@@ -10,7 +10,7 @@ import {
   User,
 } from '@element-plus/icons-vue'
 
-const props = defineProps({
+defineProps({
   collapsed: {
     type: Boolean,
     default: false,

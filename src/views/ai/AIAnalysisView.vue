@@ -95,6 +95,8 @@ function handleGenerateReport() {
 }
 
 function handleKeydown(e) {
+  // 输入法组合输入中（如中文选词）按回车不发送
+  if (e.isComposing || e.keyCode === 229) return
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault()
     handleSend()

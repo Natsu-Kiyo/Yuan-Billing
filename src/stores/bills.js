@@ -124,6 +124,12 @@ export const useBillsStore = defineStore('bills', () => {
     pagination.page = page
   }
 
+  /** 修改每页条数（自动回到第一页） */
+  function setPageSize(size) {
+    pagination.pageSize = size
+    pagination.page = 1
+  }
+
   /** 设置当前选中的账单（供编辑弹窗使用） */
   function setCurrentBill(bill) {
     currentBill.value = bill
@@ -155,6 +161,7 @@ export const useBillsStore = defineStore('bills', () => {
     removeBill,
     setFilters,
     setPage,
+    setPageSize,
     setCurrentBill,
     fetchStats,
     fetchRecentBills,

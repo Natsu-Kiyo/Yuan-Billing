@@ -12,8 +12,17 @@ import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 
 const { userId } = useAuth()
 const categoriesStore = useCategoriesStore()
-const { bills, loading, filters, pagination, fetchBills, removeBill, setPage, fetchCategories } =
-  useBills()
+const {
+  bills,
+  loading,
+  filters,
+  pagination,
+  fetchBills,
+  removeBill,
+  setPage,
+  setPageSize,
+  fetchCategories,
+} = useBills()
 
 const formVisible = ref(false)
 const editData = ref(null) // 编辑时传入已有数据，null 表示新增
@@ -22,6 +31,7 @@ const deleteVisible = ref(false)
 const exporting = ref(false)
 const importing = ref(false)
 const fileInput = ref(null)
+const listCardRef = ref(null)
 
 // 初始化：加载分类和账单列表
 onMounted(async () => {
@@ -94,9 +104,23 @@ function handleFormSubmit() {
   loadBills()
 }
 
-function handlePageChange(page) {
+async function handlePageChange(page) {
   setPage(page)
-  loadBills()
+  await loadBills()
+  scrollListToTop()
+}
+
+async function handleSizeChange(size) {
+  setPageSize(size)
+  await loadBills()
+  scrollListToTop()
+}
+
+/** 翻页或修改每页条数后回到列表顶部 */
+function scrollListToTop() {
+  if (listCardRef.value) {
+    listCardRef.value.scrollTop = 0
+  }
 }
 
 // --- CSV 导入导出 ---
@@ -358,18 +382,20 @@ async function handleFileChange(e) {
       <BillFilter />
     </div>
 
-    <div class="section-card">
+    <div ref="listCardRef" class="section-card bill-list-card">
       <BillList :bills="bills" :loading="loading" @edit="handleEdit" @delete="handleDelete" />
     </div>
 
-    <div v-if="pagination.total > pagination.pageSize" class="pagination-wrapper">
+    <div v-if="pagination.total > 0" class="pagination-wrapper">
       <el-pagination
         :current-page="pagination.page"
         :page-size="pagination.pageSize"
+        :page-sizes="[10, 20, 50, 100]"
         :total="pagination.total"
-        layout="prev, pager, next"
+        layout="sizes, prev, pager, next"
         background
         @current-change="handlePageChange"
+        @size-change="handleSizeChange"
       />
     </div>
 
@@ -392,11 +418,21 @@ async function handleFileChange(e) {
 </template>
 
 <style lang="less" scoped>
+// 让页面高度刚好等于「视口 - 顶栏」，列表区域内部滚动
+.page-container {
+  height: calc(100vh - var(--navbar-height));
+  height: calc(100dvh - var(--navbar-height));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .page-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   margin-bottom: var(--spacing-xl);
+  flex-shrink: 0;
 }
 
 .header-actions {
@@ -413,12 +449,21 @@ async function handleFileChange(e) {
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
   flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.bill-list-card {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .pagination-wrapper {
   display: flex;
   justify-content: center;
-  margin-top: var(--spacing-xl);
+  margin-top: var(--spacing-md);
+  flex-shrink: 0;
 }
 
 @media (max-width: 640px) {

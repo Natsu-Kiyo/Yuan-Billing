@@ -1,6 +1,7 @@
 <script setup>
 // 根组件：处理全局异常捕获、认证初始化加载态
 import { ref, onErrorCaptured } from 'vue'
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import ErrorBoundary from '@/components/common/ErrorBoundary.vue'
@@ -23,18 +24,20 @@ function handleRetry() {
 </script>
 
 <template>
-  <!-- 全局异常边界 -->
-  <ErrorBoundary v-if="appError" :error="appError" @retry="handleRetry" />
-  <template v-else>
-    <!-- 认证初始化前的加载状态 -->
-    <div v-if="!initialized" class="app-loading">
-      <div class="app-loading-spinner">
-        <el-icon :size="36" class="is-loading"><el-icon-loading></el-icon-loading></el-icon>
+  <el-config-provider :locale="zhCn">
+    <!-- 全局异常边界 -->
+    <ErrorBoundary v-if="appError" :error="appError" @retry="handleRetry" />
+    <template v-else>
+      <!-- 认证初始化前的加载状态 -->
+      <div v-if="!initialized" class="app-loading">
+        <div class="app-loading-spinner">
+          <el-icon :size="36" class="is-loading"><el-icon-loading></el-icon-loading></el-icon>
+        </div>
       </div>
-    </div>
-    <!-- 认证完成后渲染路由页面 -->
-    <router-view v-else />
-  </template>
+      <!-- 认证完成后渲染路由页面 -->
+      <router-view v-else />
+    </template>
+  </el-config-provider>
 </template>
 
 <style lang="less">

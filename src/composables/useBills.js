@@ -42,6 +42,7 @@ export function useBills() {
     removeBill: billsStore.removeBill,
     setFilters: billsStore.setFilters,
     setPage: billsStore.setPage,
+    setPageSize: billsStore.setPageSize,
     setCurrentBill: billsStore.setCurrentBill,
     fetchStats: billsStore.fetchStats,
     fetchRecentBills: billsStore.fetchRecentBills,

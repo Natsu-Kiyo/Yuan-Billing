@@ -11,28 +11,60 @@ function json(status, message, extra = {}) {
   })
 }
 
-/** 校验 Supabase 访问令牌，返回对应用户；无效时返回 null */
+/**
+ * 校验 Supabase 访问令牌
+ * @returns {Promise<{ user: object|null, status: number, reason: string }>}
+ */
 async function authenticate(request) {
   const authHeader = request.headers.get('authorization') || ''
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : ''
-  if (!token) return null
+  if (!token) {
+    return { user: null, status: 401, reason: '缺少登录凭证' }
+  }
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
   const anonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
-  if (!supabaseUrl || !anonKey) return null
+  if (!supabaseUrl || !anonKey) {
+    return {
+      user: null,
+      status: 500,
+      reason: '服务端缺少 SUPABASE_URL / SUPABASE_ANON_KEY 配置',
+    }
+  }
 
+  let response
   try {
-    const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    response = await fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: {
         apikey: anonKey,
         Authorization: `Bearer ${token}`,
       },
     })
+  } catch (err) {
+    const code = err?.cause?.code || err?.code || err?.message || 'UNKNOWN'
+    return {
+      user: null,
+      status: 503,
+      reason: `无法连接 Supabase 校验登录状态（${code}），请检查服务端出网或代理设置`,
+    }
+  }
 
-    if (!response.ok) return null
-    return await response.json()
+  if (response.status === 401 || response.status === 403) {
+    return { user: null, status: 401, reason: '登录状态已失效，请重新登录' }
+  }
+
+  if (!response.ok) {
+    return { user: null, status: 502, reason: `校验登录状态失败（HTTP ${response.status}）` }
+  }
+
+  try {
+    const user = await response.json()
+    if (!user?.id) {
+      return { user: null, status: 401, reason: '登录状态已失效，请重新登录' }
+    }
+    return { user, status: 200, reason: '' }
   } catch {
-    return null
+    return { user: null, status: 502, reason: '校验登录状态返回了非法响应' }
   }
 }
 
@@ -46,9 +78,11 @@ export default async function handler(request) {
     return json(500, '服务端未配置 ZHIPU_API_KEY')
   }
 
-  const user = await authenticate(request)
-  if (!user) {
-    return json(401, '登录状态已失效，请重新登录')
+  const auth = await authenticate(request)
+  if (!auth.user) {
+    // 记录到函数日志，便于区分“令牌失效”和“服务端无法访问 Supabase”
+    console.error(`[ai] 登录校验失败：${auth.reason}`)
+    return json(auth.status, auth.reason)
   }
 
   let payload

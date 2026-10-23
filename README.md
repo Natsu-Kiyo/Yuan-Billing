@@ -149,6 +149,13 @@ npm run dev
 ### 5. 常见问题
 
 - **AI 返回 500「服务端未配置 ZHIPU_API_KEY」**：检查 Netlify 环境变量名（不要带 `VITE_` 前缀），修改后重新部署
+- **本地 AI 返回 503「无法连接 Supabase 校验登录状态（ECONNRESET）」**：Vite 的 Node 进程访问不到 Supabase，常见原因是代理只对浏览器生效。给开发服务器设置代理后重启：
+  ```powershell
+  $env:NODE_USE_ENV_PROXY="1"
+  $env:HTTPS_PROXY="http://127.0.0.1:7890"
+  npm run dev
+  ```
+  线上 Netlify Functions 具备正常出网能力，不受此限制
 - **修改环境变量后前端仍用旧值**：`VITE_` 变量在构建时内联，必须重新构建部署
 - **统计页提示函数不存在**：未执行 `20261017000001_bill_stats_rpc.sql`
 

@@ -76,7 +76,7 @@ function buildReportPrompt() {
 }
 
 /** 通用 SSE 流式请求处理 */
-async function streamChat({ messages, stats, systemPrompt, onChunk, onDone, onError }) {
+async function streamChat({ messages, stats, systemPrompt, signal, onChunk, onDone, onError }) {
   let token
 
   try {
@@ -114,6 +114,7 @@ async function streamChat({ messages, stats, systemPrompt, onChunk, onDone, onEr
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
+      signal,
     })
 
     if (!response.ok) {
@@ -155,17 +156,22 @@ async function streamChat({ messages, stats, systemPrompt, onChunk, onDone, onEr
 
     onDone()
   } catch (err) {
+    // 主动取消时保留已生成内容，不当作错误处理
+    if (err?.name === 'AbortError') {
+      onDone()
+      return
+    }
     onError(err)
   }
 }
 
 /** 发送聊天消息（流式） */
-export async function sendMessageStream({ messages, stats, onChunk, onDone, onError }) {
-  await streamChat({ messages, stats, onChunk, onDone, onError })
+export async function sendMessageStream({ messages, stats, signal, onChunk, onDone, onError }) {
+  await streamChat({ messages, stats, signal, onChunk, onDone, onError })
 }
 
 /** 生成消费分析报告（流式） */
-export async function generateReportStream({ stats, onChunk, onDone, onError }) {
+export async function generateReportStream({ stats, signal, onChunk, onDone, onError }) {
   const messages = [
     { role: 'user', content: `以下是我的财务数据，请帮我生成分析报告：\n${buildContext(stats)}` },
   ]
@@ -173,6 +179,7 @@ export async function generateReportStream({ stats, onChunk, onDone, onError }) 
     messages,
     stats,
     systemPrompt: buildReportPrompt(),
+    signal,
     onChunk,
     onDone,
     onError,

@@ -11,7 +11,15 @@ import { formatAmount } from '@/utils/format'
 const md = new MarkdownIt({ breaks: true, linkify: true })
 
 const { userId } = useAuth()
-const { messages, loading, streamingContent, sendMessage, generateReport, clearMessages } = useAI()
+const {
+  messages,
+  loading,
+  streamingContent,
+  sendMessage,
+  generateReport,
+  stopGeneration,
+  clearMessages,
+} = useAI()
 const {
   totalExpense,
   totalIncome,
@@ -114,6 +122,11 @@ function handleSend() {
 function handleQuickQuestion(q) {
   inputText.value = q
   handleSend()
+}
+
+/** 终止生成，保留已生成的内容 */
+function handleStop() {
+  stopGeneration()
 }
 
 /** 生成消费分析报告 */
@@ -226,8 +239,16 @@ function formatTime(ts) {
               @focus="inputFocused = true"
               @blur="inputFocused = false"
             />
-            <el-button type="primary" :disabled="!inputText.trim() || loading" @click="handleSend">
-              <el-icon :size="18"><el-icon-promotion></el-icon-promotion></el-icon>
+            <el-button
+              :type="loading ? 'danger' : 'primary'"
+              :disabled="!loading && !inputText.trim()"
+              :title="loading ? '停止生成' : '发送'"
+              @click="loading ? handleStop() : handleSend()"
+            >
+              <el-icon :size="18">
+                <el-icon-video-pause v-if="loading" />
+                <el-icon-promotion v-else />
+              </el-icon>
             </el-button>
           </div>
           <el-button

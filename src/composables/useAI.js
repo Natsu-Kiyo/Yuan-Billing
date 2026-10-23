@@ -14,6 +14,7 @@ export function useAI() {
     hasMessages,
     sendMessage: store.sendMessage,
     generateReport: store.generateReport,
+    stopGeneration: store.stopGeneration,
     clearMessages: store.clearMessages,
   }
 }

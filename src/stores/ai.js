@@ -22,6 +22,7 @@ export const useAIStore = defineStore('ai', () => {
   const loading = ref(false) // 请求进行中
   const error = ref(null) // 错误信息
   const streamingContent = ref('') // 当前流式输出中的内容
+  let controller = null // 当前流式请求的 AbortController
 
   const hasMessages = computed(() => messages.value.length > 0)
 
@@ -57,6 +58,13 @@ export const useAIStore = defineStore('ai', () => {
     streamingContent.value = ''
   }
 
+  /** 终止当前流式请求（保留已生成的内容） */
+  function stopGeneration() {
+    if (!controller) return
+    controller.abort()
+    controller = null
+  }
+
   /** 发送聊天消息（流式） */
   async function sendMessage(content, stats) {
     if (!content.trim()) return
@@ -66,13 +74,18 @@ export const useAIStore = defineStore('ai', () => {
     error.value = null
     startStreaming()
 
+    const abortController = new AbortController()
+    controller = abortController
+
     await sendMessageStream({
       messages: buildHistory(messages.value),
       stats,
+      signal: abortController.signal,
       onChunk: appendStreamChunk,
       onDone: () => {
         finishStreaming()
         loading.value = false
+        if (controller === abortController) controller = null
       },
       onError: (err) => {
         error.value = err.message
@@ -81,6 +94,7 @@ export const useAIStore = defineStore('ai', () => {
           addAssistantMessage(`抱歉，分析服务暂时不可用：${err.message}`)
         }
         loading.value = false
+        if (controller === abortController) controller = null
       },
     })
   }
@@ -91,12 +105,17 @@ export const useAIStore = defineStore('ai', () => {
     error.value = null
     startStreaming()
 
+    const abortController = new AbortController()
+    controller = abortController
+
     await generateReportStream({
       stats,
+      signal: abortController.signal,
       onChunk: appendStreamChunk,
       onDone: () => {
         finishStreaming()
         loading.value = false
+        if (controller === abortController) controller = null
       },
       onError: (err) => {
         error.value = err.message
@@ -105,6 +124,7 @@ export const useAIStore = defineStore('ai', () => {
           addAssistantMessage(`报告生成失败：${err.message}`)
         }
         loading.value = false
+        if (controller === abortController) controller = null
       },
     })
   }
@@ -124,6 +144,7 @@ export const useAIStore = defineStore('ai', () => {
     hasMessages,
     sendMessage,
     generateReport,
+    stopGeneration,
     clearMessages,
   }
 })

@@ -145,6 +145,10 @@ function formatTime(ts) {
       <div>
         <h1 class="page-title">AI 消费分析</h1>
         <p class="page-subtitle">智能分析消费习惯，获取个性化理财建议</p>
+        <p class="ai-disclaimer">
+          <el-icon :size="12"><el-icon-info-filled></el-icon-info-filled></el-icon>
+          内容由 AI 生成，请仔细甄别
+        </p>
       </div>
       <el-button type="primary" size="large" :loading="loading" @click="handleGenerateReport">
         <el-icon :size="16"><el-icon-document></el-icon-document></el-icon>
@@ -291,6 +295,16 @@ function formatTime(ts) {
   justify-content: space-between;
   flex-shrink: 0;
   margin-bottom: var(--spacing-md);
+}
+
+.ai-disclaimer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  line-height: 1.4;
 }
 
 .ai-body {

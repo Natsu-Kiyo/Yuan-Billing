@@ -106,7 +106,8 @@ async function streamChat({ messages, stats, systemPrompt, onChunk, onDone, onEr
   }
 
   try {
-    const response = await fetch(`${API_BASE}/chat/completions`, {
+    // API_BASE 已经是函数地址，不再拼接 /chat/completions
+    const response = await fetch(API_BASE, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

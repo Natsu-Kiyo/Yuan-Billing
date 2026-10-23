@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig, loadEnv } from 'vite'
@@ -22,7 +24,22 @@ function netlifyFunctionsDev() {
         if (!req.url?.startsWith(prefix)) return next()
 
         const name = req.url.slice(prefix.length).split('?')[0]
-        if (!name) return next()
+
+        // 名称非法或文件不存在时返回 404，避免落到兜底逻辑里变成 500
+        if (!name || !/^[\w-]+$/.test(name)) {
+          res.statusCode = 404
+          res.setHeader('Content-Type', 'application/json; charset=utf-8')
+          res.end(JSON.stringify({ error: { message: `Function not found: ${name || ''}` } }))
+          return
+        }
+
+        const functionFile = path.join(server.config.root, 'netlify', 'functions', `${name}.js`)
+        if (!fs.existsSync(functionFile)) {
+          res.statusCode = 404
+          res.setHeader('Content-Type', 'application/json; charset=utf-8')
+          res.end(JSON.stringify({ error: { message: `Function not found: ${name}` } }))
+          return
+        }
 
         try {
           const mod = await server.ssrLoadModule(`/netlify/functions/${name}.js`)

@@ -1,14 +1,101 @@
 // Netlify Function：代理智谱 AI 的流式对话接口
 // 智谱密钥只保存在服务端环境变量中，前端仅携带 Supabase 访问令牌
 const ZHIPU_BASE = 'https://open.bigmodel.cn/api/paas/v4'
-const MODEL = process.env.ZHIPU_MODEL || 'glm-4.7-flash'
+const PRIMARY_MODEL = process.env.ZHIPU_MODEL || 'glm-4.7-flash'
 const MAX_TOKENS = 1024
+
+/** 读取整数环境变量并做范围约束 */
+function readIntEnv(name, fallback, min, max) {
+  const value = Number.parseInt(process.env[name] ?? '', 10)
+  if (Number.isNaN(value)) return fallback
+  return Math.min(max, Math.max(min, value))
+}
+
+// 429/5xx 重试次数与退避基数，可通过环境变量调整
+const MAX_RETRIES = readIntEnv('ZHIPU_MAX_RETRIES', 2, 0, 3)
+const RETRY_BASE_DELAY_MS = readIntEnv('ZHIPU_RETRY_DELAY_MS', 1000, 0, 5000)
+
+// 主模型被限流后回退的模型，设置为 off 可关闭
+const fallbackEnv = (process.env.ZHIPU_FALLBACK_MODEL ?? 'glm-4-flash').trim()
+const FALLBACK_MODEL = ['', 'off', 'none', 'false'].includes(fallbackEnv.toLowerCase())
+  ? ''
+  : fallbackEnv
 
 function json(status, message, extra = {}) {
   return new Response(JSON.stringify({ error: { message }, ...extra }), {
     status,
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
   })
+}
+
+function isRetryableStatus(status) {
+  return status === 429 || status >= 500
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function buildRequestBody(model, messages) {
+  return JSON.stringify({
+    model,
+    messages,
+    temperature: 0.7,
+    max_tokens: MAX_TOKENS,
+    thinking: { type: 'disabled' },
+    stream: true,
+  })
+}
+
+/**
+ * 调用指定模型；遇到 429/5xx 或网络错误时按退避策略重试
+ * 成功时返回 Response，重试耗尽时返回最后一次上游响应
+ */
+async function requestCompletion({ apiKey, model, messages, retries }) {
+  let lastError = null
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    let response
+
+    try {
+      response = await fetch(`${ZHIPU_BASE}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: buildRequestBody(model, messages),
+      })
+    } catch (err) {
+      lastError = err
+
+      if (attempt === retries) break
+
+      const delay = RETRY_BASE_DELAY_MS * (attempt + 1)
+      console.warn(
+        `[ai] ${model} 网络异常（${err?.cause?.code || err?.message}），${delay}ms 后重试`,
+      )
+      await sleep(delay)
+      continue
+    }
+
+    if (response.ok) return response
+
+    if (!isRetryableStatus(response.status) || attempt === retries) {
+      return response
+    }
+
+    const delay = RETRY_BASE_DELAY_MS * (attempt + 1)
+    console.warn(
+      `[ai] ${model} 返回 ${response.status}，${delay}ms 后重试（${attempt + 1}/${retries}）`,
+    )
+
+    // 释放失败响应，避免占用连接
+    await response.body?.cancel()
+    await sleep(delay)
+  }
+
+  throw lastError || new Error('请求 AI 服务失败')
 }
 
 /**
@@ -96,28 +183,45 @@ export default async function handler(request) {
     return json(400, '缺少对话内容')
   }
 
-  // 服务端固定模型与采样参数，避免客户端传入高成本配置
-  const body = {
-    model: MODEL,
-    messages: payload.messages,
-    temperature: 0.7,
-    max_tokens: MAX_TOKENS,
-    thinking: { type: 'disabled' },
-    stream: true,
+  const models = [PRIMARY_MODEL, FALLBACK_MODEL].filter(
+    (model, index, list) => model && list.indexOf(model) === index,
+  )
+
+  let upstream = null
+  let usedModel = PRIMARY_MODEL
+  let lastError = null
+
+  for (let index = 0; index < models.length; index++) {
+    usedModel = models[index]
+    // 主模型按配置重试，回退模型只尝试一次，避免整体耗时过长
+    const retries = index === 0 ? MAX_RETRIES : 0
+
+    try {
+      upstream = await requestCompletion({
+        apiKey,
+        model: usedModel,
+        messages: payload.messages,
+        retries,
+      })
+    } catch (err) {
+      lastError = err
+      console.error(`[ai] ${usedModel} 请求失败：${err?.cause?.code || err?.message}`)
+      continue
+    }
+
+    if (upstream.ok) break
+
+    const canFallback = isRetryableStatus(upstream.status) && index < models.length - 1
+    if (!canFallback) break
+
+    console.warn(`[ai] ${usedModel} 返回 ${upstream.status}，回退到 ${models[index + 1]}`)
+    await upstream.body?.cancel()
+    upstream = null
   }
 
-  let upstream
-  try {
-    upstream = await fetch(`${ZHIPU_BASE}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(body),
-    })
-  } catch {
-    return json(502, '无法连接 AI 服务，请稍后重试')
+  if (!upstream) {
+    const code = lastError?.cause?.code || lastError?.message
+    return json(502, `无法连接 AI 服务${code ? `（${code}）` : ''}，请稍后重试`)
   }
 
   if (!upstream.ok) {
@@ -134,6 +238,7 @@ export default async function handler(request) {
     headers: {
       'Content-Type': 'text/event-stream; charset=utf-8',
       'Cache-Control': 'no-cache, no-transform',
+      'X-AI-Model': usedModel,
     },
   })
 }

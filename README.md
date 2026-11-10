@@ -149,6 +149,7 @@ npm run dev
 ### 5. 常见问题
 
 - **AI 返回 500「服务端未配置 ZHIPU_API_KEY」**：检查 Netlify 环境变量名（不要带 `VITE_` 前缀），修改后重新部署
+- **AI 偶发 429「该模型当前访问量过大」**：免费模型容量限制。函数默认对 429/5xx 退避重试 2 次，仍失败会回退到 `glm-4-flash`；可通过 `ZHIPU_MAX_RETRIES`、`ZHIPU_RETRY_DELAY_MS`、`ZHIPU_FALLBACK_MODEL`（设为 `off` 关闭回退）调整
 - **本地 AI 返回 503「无法连接 Supabase 校验登录状态（ECONNRESET）」**：Vite 的 Node 进程访问不到 Supabase，常见原因是代理只对浏览器生效。给开发服务器设置代理后重启：
   ```powershell
   $env:NODE_USE_ENV_PROXY="1"

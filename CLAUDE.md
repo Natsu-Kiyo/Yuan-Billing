@@ -60,7 +60,7 @@ All authenticated routes are children of `AppLayout.vue` (sidebar + navbar shell
 
 ### AI streaming
 
-`src/api/ai.js` posts to `/.netlify/functions/ai` with the Supabase access token. `netlify/functions/ai.js` validates that token against Supabase, injects the server-only `ZHIPU_API_KEY`, and streams 智谱 AI's SSE response straight through. The client reads the response body as a `ReadableStream` reader, parses SSE `data:` lines and calls `onChunk` callbacks. The `useAIStore` manages message history and streaming state, appending chunks into `streamingContent` (rendered in real-time by the view), then moving the completed message into `messages[]` on `onDone`.
+`src/api/ai.js` posts to `/.netlify/functions/ai` with the Supabase access token. `netlify/functions/ai.js` validates that token against Supabase, injects the server-only `ZHIPU_API_KEY`, and streams 智谱 AI's SSE response straight through. 429/5xx responses are retried with backoff (`ZHIPU_MAX_RETRIES`, `ZHIPU_RETRY_DELAY_MS`) and then fall back to `ZHIPU_FALLBACK_MODEL` (default `glm-4-flash`, `off` disables). The client reads the response body as a `ReadableStream` reader, parses SSE `data:` lines and calls `onChunk` callbacks. The `useAIStore` manages message history and streaming state, appending chunks into `streamingContent` (rendered in real-time by the view), then moving the completed message into `messages[]` on `onDone`; `stopGeneration()` aborts the in-flight request and keeps partial output.
 
 Local dev does not need `netlify dev`: a small Vite plugin (`netlifyFunctionsDev` in `vite.config.js`) mounts `/.netlify/functions/*` and invokes the handler in-process, so local and production share the same server-side path.
 

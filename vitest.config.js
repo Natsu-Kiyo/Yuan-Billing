@@ -9,6 +9,6 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['src/**/*.spec.js'],
+    include: ['src/**/*.spec.js', 'netlify/**/*.spec.js'],
   },
 })
